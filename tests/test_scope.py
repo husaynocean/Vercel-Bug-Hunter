@@ -55,3 +55,13 @@ def test_bundled_contests_load():
     for f in (ROOT / "contests").glob("*.yaml"):
         c = Contest.load(f)
         assert c.scope.files and len(c.commit) == 40
+
+
+def test_multi_part_scope_union_case_insensitive(tmp_path):
+    repo = _fake_repo(tmp_path, ["a/src/X.sol", "b/src/Y.sol"], ["A/src/X.sol", "b/src/Y.sol"])
+    part = Contest(id="x", platform="c4", repo="r", commit="c", scope=Scope(files=["A/src/X.sol"], project_dir="A"),
+                   scope_file="scope.txt", sibling_files=["b/src/Y.sol"])
+    part.verify_scope(repo)  # passes: union matches, typo'd case tolerated
+    part.sibling_files = []
+    with pytest.raises(ScopeError, match="disagrees"):
+        part.verify_scope(repo)

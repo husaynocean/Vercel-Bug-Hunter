@@ -51,6 +51,8 @@ class Contest:
     notes: str = ""
     out_of_scope: list[str] = field(default_factory=list)
     known_issues: list[str] = field(default_factory=list)  # repo-relative automated reports
+    sibling_files: list[str] = field(default_factory=list)  # other parts' scope (multi-project contests)
+    group: str | None = None                                 # benchmark group for multi-part contests
 
     @classmethod
     def load(cls, path: str | Path) -> "Contest":
@@ -64,6 +66,8 @@ class Contest:
             url=raw.get("url"), notes=raw.get("notes", ""),
             out_of_scope=raw.get("out_of_scope", []),
             known_issues=raw.get("known_issues", []),
+            sibling_files=raw["scope"].get("sibling_files", []),
+            group=raw.get("group"),
         )
 
     # ------------------------------------------------------------------ checkout
@@ -86,15 +90,21 @@ class Contest:
         if missing:
             raise ScopeError(f"in-scope files missing at {self.commit[:10]}: {missing}")
         if self.scope_file and (root / self.scope_file).is_file():
+            # Compared case-insensitively: official lists contain typos like `asd/` for `asD/`
+            # (every yaml path was already checked to exist with its exact case above).
             official = {
-                str(PurePosixPath(l.strip())) for l in (root / self.scope_file).read_text().splitlines()
+                str(PurePosixPath(l.strip().removeprefix("./"))).lower()
+                for l in (root / self.scope_file).read_text().splitlines()
                 if l.strip() and not l.strip().startswith("#")
             }
-            if official != set(self.scope.files):
+            # Multi-project contests are split into one YAML per Foundry project ("parts");
+            # each part lists the other parts' files so the union is still checked in full.
+            ours = {f.lower() for f in self.scope.files} | {f.lower() for f in self.sibling_files}
+            if official != ours:
                 raise ScopeError(
                     "contest YAML scope disagrees with official scope file "
-                    f"{self.scope_file}: only-in-yaml={sorted(set(self.scope.files) - official)} "
-                    f"only-in-official={sorted(official - set(self.scope.files))}"
+                    f"{self.scope_file}: only-in-yaml={sorted(ours - official)} "
+                    f"only-in-official={sorted(official - ours)}"
                 )
 
     def project_root(self, repo_root: Path) -> Path:
