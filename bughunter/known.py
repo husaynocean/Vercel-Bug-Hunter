@@ -18,6 +18,30 @@ FILE = re.compile(r"^File:\s*(\S+)")
 LINE = re.compile(r"^\s*(\d+)\s*[|:]")
 COUNTED = ("H", "M", "L")  # skip GAS / NC / informational
 
+# A bot issue only makes a finding "known" if it is about the same kind of bug, not merely
+# the same lines: on Kelp, the awarded H-02 sits next to a transferFrom the bot flagged for
+# token compatibility. Issue titles map to review categories by keyword; generic hygiene
+# notes (events, two-step ownership, zero-address checks, ...) map to nothing and never match.
+ISSUE_CATEGORY = [
+    (("reentran",), "reentrancy"),
+    (("chainlink", "oracle", "stale", "price feed", "latestanswer", "sequencer", "twap", "slippage"),
+     "oracle-manipulation"),
+    (("transfer", "approve", "allowance", "fee-on-transfer", "erc20", "ierc20", "return value",
+      "safeerc20", "rebasing", "decimals"), "external-integration"),
+    (("rounding", "precision", "division", "divide", "truncat", "overflow", "underflow", "downcast"),
+     "rounding-precision"),
+    (("access control", "onlyowner", "unprotected", "permission", "authoriz", "tx.origin"),
+     "access-control"),
+    (("loop", "gas limit", "denial of service", "dos", "unbounded"), "dos"),
+    (("erc4626", "eip-4626", "erc-4626", "erc1155", "eip-"), "standards-compliance"),
+    (("first deposit", "inflation", "donation", "share price", "accounting"), "accounting"),
+]
+
+
+def issue_categories(title: str) -> set[str]:
+    t = title.lower()
+    return {cat for kws, cat in ISSUE_CATEGORY if any(k in t for k in kws)}
+
 
 def parse_report(text: str) -> dict[tuple[str, int], list[str]]:
     """(file, line) -> ['M-02 ERC-20: transfer() return values should be checked', ...]"""
@@ -80,11 +104,14 @@ def load(contest: Contest, repo: Path) -> dict[tuple[str, int], list[str]]:
     return refs
 
 
-def match(refs: dict, patch: str, slack: int = 1) -> list[str]:
+def match(refs: dict, patch: str, category: str | None = None, slack: int = 1) -> list[str]:
+    """Known issues on the fix's lines; with `category`, only issues about that bug class."""
     hits: list[str] = []
     for f, ln in changed_lines(patch):
         for d in range(-slack, slack + 1):
             for i in refs.get((f, ln + d), []):
+                if category is not None and category not in issue_categories(i):
+                    continue
                 if i not in hits:
                     hits.append(i)
     return hits

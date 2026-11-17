@@ -52,5 +52,10 @@ File: src/V.sol
     patch = "--- a/src/V.sol\n+++ b/src/V.sol\n@@ -937,4 +937,4 @@\n a\n b\n-        _asset.transfer(r, x);\n+        _asset.safeTransfer(r, x);\n c\n"
     assert known.changed_lines(patch)[0] == ("src/V.sol", 939)
     assert known.match({("src/V.sol", 939): ["bot: M-02"]}, patch) == ["bot: M-02"]
+    # same lines, different kind of bug -> not "known"
+    refs2 = {("src/V.sol", 939): ["bot: M-02 ERC-20: transfer() return values should be checked"]}
+    assert known.match(refs2, patch, "accounting") == []
+    assert known.match(refs2, patch, "external-integration") == ["bot: M-02 ERC-20: transfer() return values should be checked"]
+    assert known.match({("src/V.sol", 939): ["bot: L-11 Lack of two-step update"]}, patch, "accounting") == []
     gas_only = "--- a/src/V.sol\n+++ b/src/V.sol\n@@ -617 +617 @@\n-x\n+y\n"
     assert known.match({("src/V.sol", 939): ["bot: M-02"]}, gas_only) == []

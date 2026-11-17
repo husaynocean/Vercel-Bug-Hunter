@@ -221,11 +221,12 @@ def annotate_known(contest: Contest, workdir: Path) -> None:
     if not path.exists():
         return
     refs = known.load(contest, workdir / contest.id / "repo")
+    cats = {c["cid"]: c["category"] for c in load_candidates(workdir, contest)}
     results = json.loads(path.read_text())
     for cid, r in results.items():
         patch_path = out / "pocs" / f"{cid}.patch"
         if r.get("status") == "confirmed" and patch_path.exists():
-            r["known_issue"] = known.match(refs, patch_path.read_text())
+            r["known_issue"] = known.match(refs, patch_path.read_text(), cats.get(cid))
     path.write_text(json.dumps(results, indent=1) + "\n")
 
 

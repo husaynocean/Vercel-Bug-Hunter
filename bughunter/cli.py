@@ -111,7 +111,9 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "report":
         from bughunter import report
         out = report.draft(contest, a.workdir)
-        print(f"{len(list(out.glob('*.md')))} draft(s) in {out} (confirmed findings only; review before submitting)")
+        n = len([f for f in out.glob("*.md") if f.name != "known-issues.md"])
+        known_note = " + known-issues.md" if (out / "known-issues.md").exists() else ""
+        print(f"{n} draft(s){known_note} in {out} (confirmed, not-known findings only; review before submitting)")
         return 0
 
     if a.cmd == "bench":

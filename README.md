@@ -213,11 +213,12 @@ Blind review by context-free subagents, then a Foundry proof re-run by the
 pipeline. "Found" was checked by hand against the published finding (same
 root cause), not just a location match.
 
-| contest | published Highs | High found + proven | severity agreed | Mediums found + proven | drafts | known-issue filtered | plan tokens (approx.) |
-|---|---|---|---|---|---|---|---|
-| PoolTogether 2024-03 | 1 | **1/1** | 1/1 | 1/8 (M-06 twin, filtered as bot-known) | H + L | 3 | ~1.2M |
-| Canto 2023-11 | 1 | **1/1** | 0/1 (rated Medium) | 1/2 (M-01) | 3 M | 0 | ~0.4M |
-| **total so far** | **2** | **2/2** | **1/2** | **2/10** | | | **~1.6M** |
+| contest | prompt | published Highs | High found + proven | severity agreed | Mediums found + proven | drafts (H/M/L) | known-issue filtered | plan tokens (approx.) |
+|---|---|---|---|---|---|---|---|---|
+| PoolTogether 2024-03 | v1 | 1 | **1/1** | 1/1 | 1/8 (M-06 twin, filtered as bot-known) | 1/0/1 | 3 | ~1.2M |
+| Canto 2023-11 | v1 | 1 | **1/1** | 0/1 (rated Medium) | 1/2 | 0/3/0 | 0 | ~0.4M |
+| Kelp 2023-11 | v2 | 3 | **2/3** (H-02, H-03; missed H-01) | 2/2 | 2/2 | 2/4/0 | 1 | ~0.7M |
+| **total so far** | | **5** | **4/5** | **3/4** | **4/12** | | | **~2.3M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
@@ -226,6 +227,15 @@ Notes:
   contract.
 - The review underrates severity (Canto H-01 came back Medium). Worth a
   prompt tweak: "permanently locked protocol/creator funds = High".
+- Kelp: 7 of 7 candidates were confirmed by PoC. Two drafted Mediums (DoS
+  until a newly added asset's oracle or strategy is configured) were not
+  awarded; they hinge on trusted-admin sequencing. The miss, H-01 (arbitrage
+  from Chainlink deviation thresholds), needs feed-parameter knowledge the
+  review did not use.
+- Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp
+  findings (H-02, M-01) that sit next to unrelated bot notes. It now requires
+  the bot issue to be about the same bug class; regression-checked on all
+  contests so far.
 - Misses so far are mostly Mediums that need off-repo context or that the
   prompt's "no speculation" rule dismissed (PoolTogether M-02, M-05).
 
