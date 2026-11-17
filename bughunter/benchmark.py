@@ -5,14 +5,52 @@ never by the scan or (later) the LLM review, so the benchmark stays blind.
 
 Week-1 metrics: "lead recall" = known Highs whose root function got any
 non-noise static lead (only prioritisation -- the LLM reviews every function
-anyway); "category recall" = got a lead of the matching bug class. Weeks 3-4 replace this with
-"confirmed recall": a Foundry-proven finding matching the known bug."""
+anyway); "category recall" = got a lead of the matching bug class.
+
+Week-2 metrics (when review/candidates.json exists): a known High is a
+"candidate hit" when the LLM raised a candidate rooted in the same
+contract.function; "category hit" additionally needs the same bug class.
+Matching is by location, so `matched_titles` is printed for a human to
+confirm it is really the same bug. Weeks 3-4 add "confirmed recall": a
+Foundry-proven finding matching the known bug."""
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
 import yaml
+
+
+def _fn_key(name: str) -> tuple[str | None, str]:
+    """'PrizeVault.claimYieldFeeShares(uint256)' -> ('PrizeVault', 'claimYieldFeeShares')"""
+    base = name.split("(")[0].strip().strip("`")
+    contract, _, fn = base.rpartition(".")
+    return (contract or None, fn)
+
+
+def score_review(review_dir: Path, truth: dict, severities) -> dict | None:
+    path = review_dir / "candidates.json"
+    if not path.exists():
+        return None
+    cands = json.loads(path.read_text())
+    rows = []
+    for t in truth["findings"]:
+        if t["severity"] not in severities:
+            continue
+        targets = set(t["functions"])
+        hits = [c for c in cands if any(
+            fn in targets and contract in (None, t["contract"])
+            for contract, fn in map(_fn_key, c["functions"] + [c["reviewed_function"]]))]
+        cat_hits = [c for c in hits if c["category"] == t.get("bug_class")]
+        rows.append({"id": t["id"], "candidate_hit": bool(hits), "category_hit": bool(cat_hits),
+                     "matched_titles": [f"[{c['severity']}/{c['category']}] {c['title']}" for c in hits]})
+    n = len(rows)
+    return {"candidates_total": len(cands),
+            "candidates_by_severity": {s: sum(1 for c in cands if c["severity"] == s)
+                                       for s in ("high", "medium", "low")},
+            "candidate_recall": round(sum(r["candidate_hit"] for r in rows) / n, 3) if n else None,
+            "candidate_category_recall": round(sum(r["category_hit"] for r in rows) / n, 3) if n else None,
+            "findings": rows}
 
 
 def score(scan_dir: Path, truth_file: Path, severities=("high",)) -> dict:
@@ -48,4 +86,5 @@ def score(scan_dir: Path, truth_file: Path, severities=("high",)) -> dict:
             "category_hits": sum(r["category_hit"] for r in rows),
             "category_recall": round(sum(r["category_hit"] for r in rows) / n, 3) if n else None,
             "confirmed_hits": None,  # filled once the proof step exists (week 3)
-            "findings": rows}
+            "findings": rows,
+            "review": score_review(scan_dir.parent / "review", truth, severities)}

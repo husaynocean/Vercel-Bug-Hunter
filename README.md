@@ -7,7 +7,7 @@ publishes as in scope.
 ```
 contest.yaml ─► checkout @ pinned commit ─► scope check ─► forge build
             ─► Slither + Semgrep (in-scope only) ─► leads + function inventory   [wk1 ✅]
-            ─► LLM review per function × checklist                              [wk2]
+            ─► LLM review per function × checklist                              [wk2 ✅ code; run pending key]
             ─► Foundry PoC per suspected bug, local fork; keep only passing      [wk3]
             ─► contest-format report draft → human review → submit              [wk3/4]
             ─► benchmark: 10 past contests, % known Highs caught                [wk4]
@@ -85,6 +85,48 @@ logic/accounting bug. The only static lead on that function is an unrelated
 of review, and the LLM pass has to catch this class of bug. Note that the LLM
 reviews *every* externally reachable state-changing function, not only those
 with leads.
+
+## LLM review (week 2)
+
+```bash
+export ANTHROPIC_API_KEY=...        # or set it on the cloud environment (see below)
+bughunter review contests/c4-2024-03-pooltogether.yaml --dry-run          # prompts + size, no calls
+bughunter review contests/c4-2024-03-pooltogether.yaml --only claimYieldFeeShares   # 1-call smoke test
+bughunter review contests/c4-2024-03-pooltogether.yaml                    # all functions
+bughunter bench  contests/c4-2024-03-pooltogether.yaml                    # adds review recall
+```
+
+- **Unit of work.** Every implemented, non-interface function and modifier in
+  `functions.json` gets one call, whether or not it has static leads (61 on
+  PoolTogether). Its static leads go in as unverified hints.
+- **Checklist.** The model must give a verdict for each category: access
+  control, reentrancy, rounding/precision, oracle manipulation, accounting,
+  external integration, DoS, standards compliance (`review/prompts.py`). Then
+  it reports findings in a strict schema (`review/schema.py`): title,
+  severity, confidence, root cause, attack path, impact, and a **PoC plan**
+  that the week-3 proof step will turn into a Foundry test.
+- **Context.** The cached prefix is the static instructions plus all in-scope
+  source with line numbers, the contest notes and the out-of-scope list. On
+  PoolTogether that's one ~18k-token prefix shared by every call. Only
+  in-scope code is sent; external contracts are described as trusted per the
+  README. Above ~100k tokens it switches to per-file context.
+- **API.** `claude-opus-5-5` at effort `high`, structured output via
+  `client.beta.messages.parse`, prompt caching on the context block, and
+  server-side refusal fallbacks (`fallbacks="default"`), since security work
+  can trip safety classifiers. Refusals and errors are recorded per function,
+  not fatal. Results are cached per function, so re-runs only redo what
+  changed (`--force` redoes everything).
+- **Outputs** in `work/<id>/review/`: `candidates.json` (ranked suspected
+  bugs, the week-3 queue), `review.md`, `manifest.json` (token usage,
+  estimated USD), `calls/*.json`.
+- **Benchmark.** `bench` reports *candidate recall* (a candidate rooted in
+  the known High's function) and *candidate category recall* (same bug class
+  too), plus `matched_titles` for a human to confirm it's really the same bug.
+  It also reports total candidates by severity, as a noise measure.
+
+**API key in cloud sessions:** add `ANTHROPIC_API_KEY` as an environment
+variable on the `vercel-bug-hunter` cloud environment (environment menu →
+Edit). New sessions pick it up.
 
 ## Adding a contest
 

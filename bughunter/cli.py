@@ -28,6 +28,16 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--severity", action="append", default=None,
                    help="severity to score (repeatable; default: high)")
 
+    r = sub.add_parser("review", help="LLM review of every in-scope function (needs a scan)")
+    r.add_argument("contest", type=Path)
+    r.add_argument("--model", default=None, help="default: claude-opus-5-5")
+    r.add_argument("--effort", default="high", choices=["low", "medium", "high", "xhigh", "max"])
+    r.add_argument("--only", help="review only functions whose id contains this text")
+    r.add_argument("--limit", type=int)
+    r.add_argument("--concurrency", type=int, default=4)
+    r.add_argument("--dry-run", action="store_true", help="build prompts, estimate size, no API calls")
+    r.add_argument("--force", action="store_true", help="ignore cached per-function results")
+
     sub.add_parser("doctor", help="check toolchain")
 
     a = p.parse_args(argv)
@@ -43,6 +53,22 @@ def main(argv: list[str] | None = None) -> int:
         print(f"scan written to {out}")
         print(f"  {m['functions']} functions, {m['leads_review_queue']} leads in review queue "
               f"({m['leads_total']} total), {m['elapsed_s']}s")
+        return 0
+
+    if a.cmd == "review":
+        from bughunter.review import runner
+        try:
+            out = runner.run(contest, a.workdir, model=a.model or runner.DEFAULT_MODEL,
+                             effort=a.effort, only=a.only, limit=a.limit,
+                             concurrency=a.concurrency, dry_run=a.dry_run, force=a.force)
+        except runner.ReviewAborted as e:
+            print(f"review aborted: {e}. Set ANTHROPIC_API_KEY (see README#llm-review).", file=sys.stderr)
+            return 2
+        if not a.dry_run:
+            m = json.loads((out / "manifest.json").read_text())
+            print(f"review written to {out}")
+            print(f"  status {m['status']}, {m['candidates']} candidates {m['by_severity']}, "
+                  f"est. ${m['usd_estimate']}")
         return 0
 
     if a.cmd == "bench":
