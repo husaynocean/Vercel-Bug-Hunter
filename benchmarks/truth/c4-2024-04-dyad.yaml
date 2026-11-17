@@ -1,0 +1,47 @@
+# https://code4rena.com/reports/2024-04-dyad (code-423n4/2024-04-dyad-findings). Benchmark only.
+# Functions are the main root-cause sites named in each report; many Highs share liquidate/withdraw.
+contest: c4-2024-04-dyad
+findings:
+  - {id: H-01, severity: high, contract: VaultManagerV2, bug_class: accounting,
+     functions: [add, addKerosene, getNonKeroseneValue, getKeroseneValue, DeployV2.run],
+     title: "Vault licensing design flaw double-counts collateral; positions collateralized entirely with Kerosene"}
+  - {id: H-02, severity: high, contract: VaultManagerV2, bug_class: accounting, functions: [liquidate],
+     title: "No partial liquidations lets huge positions accrue bad debt"}
+  - {id: H-03, severity: high, contract: VaultManagerV2, bug_class: dos, functions: [deposit, withdraw],
+     title: "Attacker can make 0 value deposit() calls to deny user from redeeming or withdrawing collateral"}
+  - {id: H-04, severity: high, contract: VaultManagerV2, bug_class: dos, functions: [deposit, withdraw],
+     title: "Attacker can frontrun user's withdrawals to make them revert without costs"}
+  - {id: H-05, severity: high, contract: VaultManagerV2, bug_class: external-integration, functions: [withdraw, redeemDyad],
+     title: "Cannot withdraw Kerosene: withdraw expects vault.oracle(), missing in Kerosene vaults"}
+  - {id: H-06, severity: high, contract: VaultManagerV2, bug_class: accounting, functions: [withdraw],
+     title: "User can get their Kerosene stuck because of an invalid check on withdraw"}
+  - {id: H-07, severity: high, contract: VaultManagerV2, bug_class: accounting, functions: [liquidate],
+     title: "Missing exogenous collateral check in liquidate makes liquidation revert"}
+  - {id: H-08, severity: high, contract: UnboundedKerosineVault, bug_class: accounting,
+     functions: [assetPrice, VaultManagerV2.withdraw],
+     title: "Users can get Kerosene stuck until TVL becomes greater than DYAD supply"}
+  - {id: H-09, severity: high, contract: VaultManagerV2, bug_class: accounting, functions: [liquidate],
+     title: "Kerosene collateral is not moved on liquidation, exposing liquidators to loss"}
+  - {id: H-10, severity: high, contract: VaultManagerV2, bug_class: access-control, functions: [liquidate, deposit, withdraw],
+     title: "Flash loan protection can be bypassed via self-liquidations"}
+  - {id: M-01, severity: medium, contract: VaultManagerV2, bug_class: accounting, functions: [liquidate],
+     title: "Liquidation bonus logic is wrong"}
+  - {id: M-02, severity: medium, contract: VaultManagerV2, bug_class: accounting, functions: [liquidate],
+     title: "No incentive to liquidate when CR <= 1"}
+  - {id: M-03, severity: medium, contract: DeployV2, bug_class: external-integration,
+     functions: [run, BoundedKerosineVault.assetPrice, BoundedKerosineVault.setUnboundedKerosineVault],
+     title: "setUnboundedKerosineVault not called during deployment, Kerosene value queries revert"}
+  - {id: M-04, severity: medium, contract: VaultManagerV2, bug_class: accounting,
+     functions: [liquidate, BoundedKerosineVault.assetPrice],
+     title: "Liquidating positions with bounded Kerosene could be unprofitable"}
+  - {id: M-05, severity: medium, contract: VaultManagerV2, bug_class: accounting, functions: [liquidate, mintDyad],
+     title: "No incentive to liquidate small positions"}
+  - {id: M-06, severity: medium, contract: VaultManagerV2, bug_class: dos, functions: [remove, removeKerosene, deposit],
+     title: "Attacker can frontrun to prevent vaults from being removed from a dNFT position"}
+  - {id: M-07, severity: medium, contract: VaultManagerV2, bug_class: access-control, functions: [burnDyad],
+     title: "burnDyad missing isDNftOwner lets a user burn another user's minted DYAD"}
+  - {id: M-08, severity: medium, contract: DeployV2, bug_class: external-integration, functions: [run],
+     title: "Incorrect deployment / missing contract will break functionality"}
+  - {id: M-09, severity: medium, contract: UnboundedKerosineVault, bug_class: oracle-manipulation,
+     functions: [assetPrice, VaultManagerV2.getKeroseneValue, VaultManagerV2.liquidate],
+     title: "Value of Kerosene can be manipulated to force liquidate users"}
