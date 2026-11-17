@@ -1,0 +1,17 @@
+# https://code4rena.com/reports/2023-11-kelp (code-423n4/2023-11-kelp-findings). Benchmark only.
+contest: c4-2023-11-kelp
+findings:
+  - {id: H-01, severity: high, contract: LRTDepositPool, bug_class: oracle-manipulation,
+     functions: [getRsETHAmountToMint, depositAsset, LRTOracle.getRSETHPrice, LRTOracle.getAssetPrice],
+     title: "Possible arbitrage from Chainlink price discrepancy"}
+  - {id: H-02, severity: high, contract: LRTDepositPool, bug_class: accounting,
+     functions: [depositAsset, _mintRsETH, getRsETHAmountToMint, LRTOracle.getRSETHPrice],
+     title: "Protocol mints less rsETH on deposit than intended"}
+  - {id: H-03, severity: high, contract: LRTOracle, bug_class: rounding-precision,
+     functions: [getRSETHPrice, LRTDepositPool.depositAsset, LRTDepositPool.getRsETHAmountToMint],
+     title: "The price of rsETH could be manipulated by the first staker"}
+  - {id: M-01, severity: medium, contract: NodeDelegator, bug_class: accounting,
+     functions: [getAssetBalance, getAssetBalances, LRTDepositPool.getAssetDistributionData, LRTConfig.updateAssetStrategy],
+     title: "Update in strategy will cause wrong issuance of shares"}
+  - {id: M-02, severity: medium, contract: LRTDepositPool, bug_class: oracle-manipulation,
+     functions: [depositAsset], title: "Lack of slippage control on LRTDepositPool.depositAsset"}

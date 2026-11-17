@@ -28,6 +28,15 @@ def _fn_key(name: str) -> tuple[str | None, str]:
     return (contract or None, fn)
 
 
+def _targets(t: dict) -> set[tuple[str, str]]:
+    """Truth `functions` entries may be 'fn' (in t['contract']) or 'Contract.fn'."""
+    out = set()
+    for f in t["functions"]:
+        c, _, fn = f.rpartition(".")
+        out.add((c or t["contract"], fn))
+    return out
+
+
 def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None = None) -> dict | None:
     path = review_dir / "candidates.json"
     if not path.exists():
@@ -39,9 +48,10 @@ def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None
     for t in truth["findings"]:
         if t["severity"] not in severities:
             continue
-        targets = set(t["functions"])
+        targets = _targets(t)
+        names = {fn for _, fn in targets}
         hits = [c for c in cands if any(
-            fn in targets and contract in (None, t["contract"])
+            (contract, fn) in targets or (contract is None and fn in names)
             for contract, fn in map(_fn_key, c["functions"] + [c["reviewed_function"]]))]
         cat_hits = [c for c in hits if c["category"] == t.get("bug_class")]
         rows.append({"id": t["id"], "candidate_hit": bool(hits), "category_hit": bool(cat_hits),
@@ -71,7 +81,7 @@ def score(scan_dir: Path, truth_file: Path, severities=("high",)) -> dict:
     for t in truth["findings"]:
         if t["severity"] not in severities:
             continue
-        targets = [(t["contract"], fn) for fn in t["functions"]]
+        targets = sorted(_targets(t))
         unknown = [x for x in targets if x not in known]
         hit = [x for x in targets if x in queued]
         rule_hits = sorted({l["rule"] for f in funcs for l in f["leads"]

@@ -32,7 +32,7 @@ def scan(contest: Contest, workdir: Path, commercial: bool = False, build: bool 
     out.mkdir(parents=True, exist_ok=True)
 
     if build:
-        r = subprocess.run(["forge", "build"], cwd=project, capture_output=True, text=True,
+        r = subprocess.run(["forge", "build", "--build-info"], cwd=project, capture_output=True, text=True,
                            env=toolchain.env())
         if r.returncode != 0:
             raise RuntimeError(f"forge build failed:\n{r.stdout[-1500:]}\n{r.stderr[-1500:]}")

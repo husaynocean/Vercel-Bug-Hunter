@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-PROMPT_VERSION = "review-v1"
+PROMPT_VERSION = "review-v2"  # v2: severity rule for permanently locked funds
 
 CHECKLIST = {
     "access-control": [
@@ -43,7 +43,10 @@ CHECKLIST = {
 SEVERITY_RUBRIC = """\
 - high: assets can be stolen, lost or permanently locked directly, or the protocol is compromised, without unrealistic preconditions.
 - medium: assets at risk or core functionality / availability broken under stated, realistic but hypothetical conditions, or value leak.
-- low: everything else that is still a real bug (state handling, spec deviations without loss). Do not report gas, style or informational items."""
+- low: everything else that is still a real bug (state handling, spec deviations without loss). Do not report gas, style or informational items.
+Funds that become permanently stuck or unrecoverable (users', the protocol's, or entitlements of a privileged
+role such as accrued fees or interest the role can never withdraw) are a direct loss: rate them high when this
+happens in normal operation, not medium."""
 
 INSTRUCTIONS = f"""\
 You are a senior smart-contract security auditor taking part in a competitive audit contest.

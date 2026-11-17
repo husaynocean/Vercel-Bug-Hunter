@@ -33,7 +33,10 @@ def analyse(project: Path, scope: Scope) -> tuple[list[Lead], list[dict], dict]:
     from slither.detectors.abstract_detector import AbstractDetector
 
     with _tool_env():
-        sl = Slither(str(project), filter_paths=["lib/", "node_modules/", "test/", "script/"])
+        # compile_all: some projects (e.g. Kelp) set `src` to a dir that does not exist and only
+        # reach their real sources through tests/scripts; results are scope-filtered anyway.
+        sl = Slither(str(project), filter_paths=["lib/", "node_modules/", "test/", "script/"],
+                     foundry_compile_all=True)
         for _, cls in inspect.getmembers(all_detectors, inspect.isclass):
             if issubclass(cls, AbstractDetector) and cls is not AbstractDetector:
                 sl.register_detector(cls)
