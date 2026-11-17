@@ -142,9 +142,16 @@ def verify(contest: Contest, workdir: Path, cid: str, test_src: str, patch: str 
             return res
         files = _patch_files(patch)
         in_scope = set(contest.scope.project_relative())
-        if not files or not set(files) <= in_scope:
+        # The fix must change in-scope code; it may also touch the project's own supporting
+        # sources (e.g. an interface whose signature changes), never deps, tests or scripts.
+        extra = [f for f in files if f not in in_scope]
+        bad = [f for f in extra if f.startswith(("lib/", "node_modules/", "test/", "script/"))
+               or "/lib/" in f or ".." in f]
+        if not files or not (set(files) & in_scope) or bad:
             res.update(status="unverified_bad_fix", fix_files=files)
             return res
+        if extra:
+            res["fix_touches_outside_scope"] = extra
         prefix = contest.scope.project_dir
         apply = ["git", "-C", str(repo), "apply"] + ([f"--directory={prefix}"] if prefix not in (".", "") else [])
         chk = subprocess.run(apply + ["--check", "-"], input=patch, capture_output=True, text=True)
