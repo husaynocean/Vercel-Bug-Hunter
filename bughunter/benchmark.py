@@ -28,11 +28,13 @@ def _fn_key(name: str) -> tuple[str | None, str]:
     return (contract or None, fn)
 
 
-def score_review(review_dir: Path, truth: dict, severities) -> dict | None:
+def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None = None) -> dict | None:
     path = review_dir / "candidates.json"
     if not path.exists():
         return None
     cands = json.loads(path.read_text())
+    if only_ids is not None:
+        cands = [c for c in cands if c["id"] in only_ids]
     rows = []
     for t in truth["findings"]:
         if t["severity"] not in severities:
@@ -85,6 +87,15 @@ def score(scan_dir: Path, truth_file: Path, severities=("high",)) -> dict:
             "lead_recall": round(sum(r["lead_hit"] for r in rows) / n, 3) if n else None,
             "category_hits": sum(r["category_hit"] for r in rows),
             "category_recall": round(sum(r["category_hit"] for r in rows) / n, 3) if n else None,
-            "confirmed_hits": None,  # filled once the proof step exists (week 3)
             "findings": rows,
-            "review": score_review(scan_dir.parent / "review", truth, severities)}
+            "review": score_review(scan_dir.parent / "review", truth, severities),
+            # week 3: only candidates whose Foundry PoC passed AND failed under the fix
+            "confirmed": score_review(scan_dir.parent / "review", truth, severities,
+                                      only_ids=_confirmed_ids(scan_dir.parent / "prove"))}
+
+
+def _confirmed_ids(prove_dir: Path) -> set | None:
+    path = prove_dir / "results.json"
+    if not path.exists():
+        return None
+    return {r["candidate_id"] for r in json.loads(path.read_text()).values() if r["status"] == "confirmed"}

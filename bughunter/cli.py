@@ -42,6 +42,15 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--import", dest="import_dir", type=Path, metavar="DIR",
                    help="no-API mode: validate answers in DIR/answers and build candidates")
 
+    pv = sub.add_parser("prove", help="Foundry PoC per candidate; keep only confirmed bugs")
+    pv.add_argument("contest", type=Path)
+    pv.add_argument("--export", type=Path, metavar="DIR", help="write a PoC packet (outside the repo)")
+    pv.add_argument("--cids", help="comma-separated candidate ids for --export (default: all)")
+    pv.add_argument("--run", type=Path, metavar="DIR", help="verify PoCs + fixes from DIR in the clean repo")
+
+    rp = sub.add_parser("report", help="draft contest write-ups for confirmed findings")
+    rp.add_argument("contest", type=Path)
+
     sub.add_parser("doctor", help="check toolchain")
 
     a = p.parse_args(argv)
@@ -84,6 +93,25 @@ def main(argv: list[str] | None = None) -> int:
             print(f"review written to {out}")
             print(f"  status {m['status']}, {m['candidates']} candidates {m['by_severity']}, "
                   f"est. ${m['usd_estimate']}")
+        return 0
+
+    if a.cmd == "prove":
+        from bughunter import prove
+        if a.export:
+            info = prove.export(contest, a.workdir, a.export, a.cids.split(",") if a.cids else None)
+            print(f"exported {len(info['candidates'])} candidate(s) {info['candidates']} to {info['dest']}")
+        elif a.run:
+            out, counts = prove.run(contest, a.workdir, a.run)
+            print(f"proof results {counts} -> {out}")
+        else:
+            for c in prove.load_candidates(a.workdir, contest):
+                print(f"{c['cid']} [{c['severity']}] {c['title']}")
+        return 0
+
+    if a.cmd == "report":
+        from bughunter import report
+        out = report.draft(contest, a.workdir)
+        print(f"{len(list(out.glob('*.md')))} draft(s) in {out} (confirmed findings only; review before submitting)")
         return 0
 
     if a.cmd == "bench":
