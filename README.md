@@ -141,6 +141,28 @@ category, and a usable PoC plan. Caveat: that function was chosen because it
 holds the known bug, so this shows the review *can* catch it. Recall and noise
 need the full 61-function run.
 
+### Week 2 result: PoolTogether, full blind run (61 functions, no-API mode)
+
+Six fresh subagents of about 10 functions each, plus the H-01 smoke test.
+All 61 answers validated. 6 candidates (1 high, 3 medium, 2 low).
+
+| known finding | auto match | human check of the matched candidate |
+|---|---|---|
+| **H-01** fee claim loses unclaimed fees | hit | **same bug** (exact line, high, accounting) |
+| M-06 funds locked, missing transfer check | hit | **same root cause** (raw `transfer` in `_withdraw`) |
+| M-03 maxDeposit vs yieldVault.mint | hit (location) | different cause (yield-buffer `LossyDeposit`), same ERC4626 class: **not counted** |
+| M-07 maxDeposit ignores fees | hit (location) | different cause: **not counted** |
+| M-01, M-02, M-04, M-05, M-08 | miss | M-02 and M-05 were seen but dismissed as out of scope / unrealistic |
+
+- **High recall: 1/1.** Medium recall: 1/8 confirmed (4/8 by location only;
+  `bench` matches on location, so always read `matched_titles`).
+- **Candidates:** 2 of 6 match published bugs. The other 4 are USDT-style
+  raw `approve`/`transferFrom` notes, a `maxDeposit` edge case, and a
+  fee-recipient handover: plausible, but not awarded. Week 3's Foundry
+  proofs decide which survive.
+- **Usage:** about 0.9M subagent tokens (each helper re-reads the ~19k-token
+  context). This came from the Claude plan, not an API key.
+
 **API key in cloud sessions:** add `ANTHROPIC_API_KEY` as an environment
 variable on the `vercel-bug-hunter` cloud environment (environment menu →
 Edit). New sessions pick it up.
