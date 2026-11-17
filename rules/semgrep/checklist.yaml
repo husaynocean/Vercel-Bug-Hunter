@@ -1,0 +1,110 @@
+# Generic, checklist-aligned lead generators. These are deliberately broad:
+# they point the LLM reviewer at code worth a second look; they are never
+# reported on their own. Do NOT add rules derived from a benchmark contest's
+# known findings -- that would inflate the benchmark.
+rules:
+  - id: chainlink-latestrounddata
+    languages: [solidity]
+    severity: WARNING
+    message: >-
+      Chainlink latestRoundData() consumed here. Check staleness (updatedAt vs
+      heartbeat), answer > 0, sequencer uptime on L2s, and decimals handling.
+    metadata: {bughunter_category: oracle-manipulation, confidence: low}
+    pattern: $FEED.latestRoundData()
+
+  - id: amm-spot-price
+    languages: [solidity]
+    severity: WARNING
+    message: >-
+      AMM spot state (reserves / slot0) read here. If it feeds pricing or
+      valuation it is manipulable within one transaction (flash loan).
+    metadata: {bughunter_category: oracle-manipulation, confidence: low}
+    pattern-either:
+      - pattern: $POOL.getReserves()
+      - pattern: $POOL.slot0()
+      - pattern: $POOL.get_dy(...)
+
+  - id: balance-of-this
+    languages: [solidity]
+    severity: INFO
+    message: >-
+      Contract's own token balance used. Accounting based on balanceOf(this)
+      can be skewed by direct donations / transfers (share inflation,
+      first-depositor attacks, broken invariants).
+    metadata: {bughunter_category: accounting, confidence: low}
+    pattern: $TOKEN.balanceOf(address(this))
+
+  - id: divide-before-multiply
+    languages: [solidity]
+    severity: WARNING
+    message: Division before multiplication truncates; check precision loss and rounding direction.
+    metadata: {bughunter_category: rounding-precision, confidence: medium}
+    pattern-either:
+      - pattern: ($A / $B) * $C
+      - pattern: $A / $B * $C
+
+  - id: mul-div-rounding-direction
+    languages: [solidity]
+    severity: INFO
+    message: >-
+      mulDiv / share conversion. Confirm the rounding direction favours the
+      protocol (round shares down on mint/redeem, up on withdraw/previewMint).
+    metadata: {bughunter_category: rounding-precision, confidence: low}
+    pattern-either:
+      - pattern: $M.mulDiv(...)
+      - pattern: mulDiv(...)
+      - pattern: $X.mulDivDown(...)
+      - pattern: $X.mulDivUp(...)
+
+  - id: raw-erc20-approve
+    languages: [solidity]
+    severity: INFO
+    message: >-
+      Raw ERC20 approve(). Non-standard tokens (USDT) revert on non-zero ->
+      non-zero approvals or return no bool; prefer forceApprove.
+    metadata: {bughunter_category: external-call, confidence: low}
+    patterns:
+      - pattern: $T.approve($SPENDER, $AMT)
+      - pattern-not: $T.forceApprove(...)
+      - pattern-not: $T.safeApprove(...)
+
+  - id: unsafe-downcast
+    languages: [solidity]
+    severity: INFO
+    message: Explicit downcast; silently truncates unless bounds-checked (use SafeCast).
+    metadata: {bughunter_category: rounding-precision, confidence: low}
+    pattern-either:
+      - pattern: uint8($X)
+      - pattern: uint16($X)
+      - pattern: uint32($X)
+      - pattern: uint64($X)
+      - pattern: uint96($X)
+      - pattern: uint112($X)
+      - pattern: uint128($X)
+      - pattern: int128($X)
+
+  - id: tx-origin-auth
+    languages: [solidity]
+    severity: ERROR
+    message: tx.origin used for authorization.
+    metadata: {bughunter_category: access-control, confidence: high}
+    pattern-either:
+      - pattern: require(tx.origin == $X, ...)
+      - pattern: require($X == tx.origin, ...)
+      - pattern: if (tx.origin != $X) { ... }
+      - pattern: if (msg.sender != tx.origin) { ... }
+
+  - id: external-call-before-state-write
+    languages: [solidity]
+    severity: INFO
+    message: >-
+      Low-level call with value before later state updates in the same
+      function; check checks-effects-interactions / reentrancy guards.
+    metadata: {bughunter_category: reentrancy, confidence: low}
+    patterns:
+      - pattern-inside: |
+          function $F(...) { ... }
+      - pattern: |
+          $ADDR.call{value: $V}($DATA);
+          ...
+          $STATE = $Y;

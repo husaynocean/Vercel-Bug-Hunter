@@ -1,0 +1,14 @@
+# Published findings: https://code4rena.com/reports/2024-03-pooltogether
+# (code-423n4/2024-03-pooltogether-findings/report.md). Benchmark-only:
+# never fed to the scan or LLM review.
+contest: c4-2024-03-pooltogether
+findings:
+  - id: H-01
+    severity: high
+    title: >-
+      Any fee claim lesser than the total yieldFeeBalance as unit of shares is
+      lost and locked in the PrizeVault contract
+    url: https://github.com/code-423n4/2024-03-pooltogether-findings/issues/59
+    contract: PrizeVault
+    functions: [claimYieldFeeShares]
+    bug_class: accounting
