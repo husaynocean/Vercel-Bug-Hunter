@@ -1,0 +1,26 @@
+# Week-4 benchmark set: 10 past Code4rena contests with public findings.
+# Selection rules: Foundry project, official scope list, >= 1 published High,
+# no fork-dependent tests in the repo (no RPC URL needed), modest size.
+# Highs / SLoC are from the published report and the contest README
+# (checked against code-423n4/<id> and <id>-findings, Nov 2026).
+# Order = suggested run order, smallest first.
+contests:
+  - {id: 2024-03-pooltogether,       highs: 1,  sloc: 648,  status: done}       # H-01 confirmed by PoC
+  - {id: 2023-11-canto,              highs: 1,  sloc: 316,  status: todo}
+  - {id: 2023-11-kelp,               highs: 3,  sloc: 504,  status: todo}
+  - {id: 2024-04-dyad,               highs: 10, sloc: ~570, status: todo}       # scope incl. deploy script; Highs overlap heavily
+  - {id: 2024-03-coinbase,           highs: 1,  sloc: 786,  status: todo}
+  - {id: 2023-12-revolutionprotocol, highs: 4,  sloc: 1000, status: todo}       # monorepo (packages/*)
+  - {id: 2023-07-basin,              highs: 1,  sloc: 1145, status: todo}       # no scope.txt: use README table; skip fork-only integration test
+  - {id: 2024-02-ai-arena,           highs: 8,  sloc: 1271, status: todo}
+  - {id: 2023-12-particle,           highs: 4,  sloc: 1299, status: todo}       # Uniswap v3 LP math; check tests run without a fork
+  - {id: 2023-10-wildcat,            highs: 6,  sloc: 2332, status: todo}       # largest; run last
+
+# Reserves if one turns out unusable (e.g. tests need a fork after all):
+reserves:
+  - {id: 2024-04-renzo, highs: 8, note: "~4.2k raw lines in scope, Hardhat + Foundry"}
+  - {id: 2024-04-panoptic, highs: 2, note: "heavy math, some fork refs"}
+
+# Rejected: Hardhat-only (2024-01-curves, 2023-10-nextgen, 2023-06-lybra, 2023-09-asymmetry,
+# 2023-12-autonolas), too large (2023-05-maia ~9.9k SLoC, 2023-07-pooltogether 3.3k),
+# fork-heavy (2023-08-livepeer), no Highs (2023-10-ethena).
