@@ -45,6 +45,7 @@ def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None
             for contract, fn in map(_fn_key, c["functions"] + [c["reviewed_function"]]))]
         cat_hits = [c for c in hits if c["category"] == t.get("bug_class")]
         rows.append({"id": t["id"], "candidate_hit": bool(hits), "category_hit": bool(cat_hits),
+                     "severity_match": any(c["severity"] == t["severity"] for c in hits),
                      "matched_titles": [f"[{c['severity']}/{c['category']}] {c['title']}" for c in hits]})
     n = len(rows)
     return {"candidates_total": len(cands),
@@ -52,6 +53,7 @@ def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None
                                        for s in ("high", "medium", "low")},
             "candidate_recall": round(sum(r["candidate_hit"] for r in rows) / n, 3) if n else None,
             "candidate_category_recall": round(sum(r["category_hit"] for r in rows) / n, 3) if n else None,
+            "severity_agreement": round(sum(r["severity_match"] for r in rows) / n, 3) if n else None,
             "findings": rows}
 
 

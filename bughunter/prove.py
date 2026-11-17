@@ -38,14 +38,17 @@ For each brief in `candidates/` (cid = file name without .md):
    `PoC_<cid>` and one or more functions named `test_poc...`. The test must
    PASS when the bug is present, and its assertions must show the impact
    (e.g. funds lost or locked, wrong balance, unexpected revert), not merely
-   that code runs. Reuse the project's existing test setup and mocks (see
-   `project/test/unit/PrizeVault/UnitBaseSetup.t.sol` and `project/test/contracts/mock/`)
-   where they fit. Use the real in-scope contracts from `project/src/`.
+   that code runs. Reuse the project's existing test setup and mocks under
+   `project/test/` where they exist and fit; otherwise write minimal mocks in the
+   test file. Use the real in-scope contracts from `project/src/`.
    Mocks are fine only for out-of-scope dependencies, and only behaving as the
    contest README allows (see `contest.md`). Never edit files in `project/src/`.
 2. **Fix.** Write `answers/<cid>.patch`: a minimal unified diff
    (`--- a/src/...` / `+++ b/src/...`, paths relative to `project/`) that fixes
-   the root cause. With the fix applied, your test must FAIL. Check this by
+   the root cause. With the fix applied, your test must still COMPILE and must
+   FAIL (an assertion or expected-revert failure, not a compile error). If the
+   natural fix changes a signature (e.g. adds a slippage parameter), keep the old
+   signature working (e.g. add an overload) so the test compiles. Check this by
    applying it (`git apply` or `patch -p1` inside `project/`), running the test,
    then reverting `project/src/` exactly.
 3. **Report.** Write `answers/<cid>.json`:
