@@ -7,7 +7,7 @@ publishes as in scope.
 ```
 contest.yaml ─► checkout @ pinned commit ─► scope check ─► forge build
             ─► Slither + Semgrep (in-scope only) ─► leads + function inventory   [wk1 ✅]
-            ─► LLM review per function × checklist                              [wk2 ✅ code; run pending key]
+            ─► LLM review per function × checklist                              [wk2 ✅]                         
             ─► Foundry PoC per suspected bug; keep only test-confirmed           [wk3 ✅]
             ─► contest-format report draft → human review → submit              [wk3 ✅]
             ─► benchmark: 10 past contests, % known Highs caught                [wk4]
