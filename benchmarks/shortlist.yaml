@@ -6,7 +6,7 @@
 # Order = suggested run order, smallest first.
 contests:
   - {id: 2024-03-pooltogether,       highs: 1,  sloc: 648,  status: done}       # H-01 confirmed by PoC
-  - {id: 2023-11-canto,              highs: 1,  sloc: 316,  status: todo}
+  - {id: 2023-11-canto,              highs: 1,  sloc: 316,  status: done}       # 2 parts (asD, 1155tech); H-01 confirmed by PoC
   - {id: 2023-11-kelp,               highs: 3,  sloc: 504,  status: todo}
   - {id: 2024-04-dyad,               highs: 10, sloc: ~570, status: todo}       # scope incl. deploy script; Highs overlap heavily
   - {id: 2024-03-coinbase,           highs: 1,  sloc: 786,  status: todo}

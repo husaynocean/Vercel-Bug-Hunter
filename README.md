@@ -207,6 +207,28 @@ bughunter report contests/<id>.yaml                       # drafts for confirmed
 All PoCs were written by context-free subagents (about 320k tokens of plan
 usage).
 
+## Benchmark scoreboard (week 4, running)
+
+Blind review by context-free subagents, then a Foundry proof re-run by the
+pipeline. "Found" was checked by hand against the published finding (same
+root cause), not just a location match.
+
+| contest | published Highs | High found + proven | severity agreed | Mediums found + proven | drafts | known-issue filtered | plan tokens (approx.) |
+|---|---|---|---|---|---|---|---|
+| PoolTogether 2024-03 | 1 | **1/1** | 1/1 | 1/8 (M-06 twin, filtered as bot-known) | H + L | 3 | ~1.2M |
+| Canto 2023-11 | 1 | **1/1** | 0/1 (rated Medium) | 1/2 (M-01) | 3 M | 0 | ~0.4M |
+| **total so far** | **2** | **2/2** | **1/2** | **2/10** | | | **~1.6M** |
+
+Notes:
+- Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
+  on Canto). The reviewer knew it without web access. Its proof relies on a
+  cNOTE mock with that scaling, so a submission should cite the deployed
+  contract.
+- The review underrates severity (Canto H-01 came back Medium). Worth a
+  prompt tweak: "permanently locked protocol/creator funds = High".
+- Misses so far are mostly Mediums that need off-repo context or that the
+  prompt's "no speculation" rule dismissed (PoolTogether M-02, M-05).
+
 **API key in cloud sessions:** add `ANTHROPIC_API_KEY` as an environment
 variable on the `vercel-bug-hunter` cloud environment (environment menu →
 Edit). New sessions pick it up.
