@@ -8,7 +8,7 @@ contests:
   - {id: 2024-03-pooltogether,       highs: 1,  sloc: 648,  status: done}       # H-01 confirmed by PoC
   - {id: 2023-11-canto,              highs: 1,  sloc: 316,  status: done}       # 2 parts (asD, 1155tech); H-01 confirmed by PoC
   - {id: 2023-11-kelp,               highs: 3,  sloc: 504,  status: done}       # H-02, H-03 found + proven; H-01 missed
-  - {id: 2024-04-dyad,               highs: 10, sloc: ~570, status: todo}       # scope incl. deploy script; Highs overlap heavily
+  - {id: 2024-04-dyad,               highs: 10, sloc: ~570, status: done}       # 6/10 Highs found + proven       # scope incl. deploy script; Highs overlap heavily
   - {id: 2024-03-coinbase,           highs: 1,  sloc: 786,  status: todo}
   - {id: 2023-12-revolutionprotocol, highs: 4,  sloc: 1000, status: todo}       # monorepo (packages/*)
   - {id: 2023-07-basin,              highs: 1,  sloc: 1145, status: todo}       # no scope.txt: use README table; skip fork-only integration test

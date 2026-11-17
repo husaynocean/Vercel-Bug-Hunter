@@ -49,7 +49,11 @@ def draft(contest: Contest, workdir: Path) -> Path:
             lines += [f"- **{c['cid']} [{c['severity']}] {c['title']}**",
                       *[f"  - {k}" for k in c["known_issue"]]]
         (out / "known-issues.md").write_text("\n".join(lines) + "\n")
-    for c in [c for c in items if not c["known_issue"]]:
+    dups = [c for c in items if c.get("duplicate_of") and not c["known_issue"]]
+    if dups:
+        (out / "duplicates.md").write_text("# Confirmed duplicates (not drafted)\n\n" + "".join(
+            f"- {c['cid']} [{c['severity']}] {c['title']} -> duplicate of {c['duplicate_of']}\n" for c in dups))
+    for c in [c for c in items if not c["known_issue"] and not c.get("duplicate_of")]:
         test = (pdir / "pocs" / f"{c['cid']}.t.sol").read_text()
         patch = (pdir / "pocs" / f"{c['cid']}.patch").read_text()
         steps = "\n".join(f"{i}. {re.sub(r'^\s*\d+[.)]\s*', '', s)}" for i, s in enumerate(c["attack_path"], 1))

@@ -47,6 +47,8 @@ def main(argv: list[str] | None = None) -> int:
     pv.add_argument("--export", type=Path, metavar="DIR", help="write a PoC packet (outside the repo)")
     pv.add_argument("--cids", help="comma-separated candidate ids for --export (default: all)")
     pv.add_argument("--run", type=Path, metavar="DIR", help="verify PoCs + fixes from DIR in the clean repo")
+    pv.add_argument("--duplicate", action="append", metavar="CID:OF",
+                    help="mark a confirmed candidate as a duplicate of another (kept out of drafts)")
 
     rp = sub.add_parser("report", help="draft contest write-ups for confirmed findings")
     rp.add_argument("contest", type=Path)
@@ -103,6 +105,11 @@ def main(argv: list[str] | None = None) -> int:
         elif a.run:
             out, counts = prove.run(contest, a.workdir, a.run)
             print(f"proof results {counts} -> {out}")
+        elif a.duplicate:
+            for pair in a.duplicate:
+                cid, of = pair.split(":")
+                prove.mark_duplicate(contest, a.workdir, cid, of)
+                print(f"{cid} marked as duplicate of {of}")
         else:
             for c in prove.load_candidates(a.workdir, contest):
                 print(f"{c['cid']} [{c['severity']}] {c['title']}")
@@ -111,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "report":
         from bughunter import report
         out = report.draft(contest, a.workdir)
-        n = len([f for f in out.glob("*.md") if f.name != "known-issues.md"])
+        n = len([f for f in out.glob("*.md") if f.name not in ("known-issues.md", "duplicates.md")])
         known_note = " + known-issues.md" if (out / "known-issues.md").exists() else ""
         print(f"{n} draft(s){known_note} in {out} (confirmed, not-known findings only; review before submitting)")
         return 0

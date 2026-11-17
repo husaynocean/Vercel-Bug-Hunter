@@ -218,7 +218,8 @@ root cause), not just a location match.
 | PoolTogether 2024-03 | v1 | 1 | **1/1** | 1/1 | 1/8 (M-06 twin, filtered as bot-known) | 1/0/1 | 3 | ~1.2M |
 | Canto 2023-11 | v1 | 1 | **1/1** | 0/1 (rated Medium) | 1/2 | 0/3/0 | 0 | ~0.4M |
 | Kelp 2023-11 | v2 | 3 | **2/3** (H-02, H-03; missed H-01) | 2/2 | 2/2 | 2/4/0 | 1 | ~0.7M |
-| **total so far** | | **5** | **4/5** | **3/4** | **4/12** | | | **~2.3M** |
+| DYAD 2024-04 | v2 | 10 | **6/10** (H-01,03,05,06,08,09) | 4/6 (H-03, H-08 rated Medium) | 0/9 | 4/2/0 (+1 duplicate) | 0 | ~0.6M |
+| **total so far** | | **15** | **10/15** | **7/10** | **4/21** | | | **~2.9M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
@@ -232,6 +233,15 @@ Notes:
   awarded; they hinge on trusted-admin sequencing. The miss, H-01 (arbitrage
   from Chainlink deviation thresholds), needs feed-parameter knowledge the
   review did not use.
+- DYAD: all 7 candidates confirmed by PoC; 0 false positives drafted. The
+  deploy-script bug (H-01) was proven without a mainnet fork by etching the
+  real out-of-scope contracts at the script's hard-coded addresses and running
+  the unmodified `DeployV2.run()`. Misses: H-02/H-07/H-10 and most Mediums are
+  liquidation-economics issues (partial liquidation, incentives, bonus math);
+  H-04 needs an unlicensed fake vault. The review still underrates DoS-style
+  "funds locked" Highs (H-03, H-08 came back Medium). Candidate for prompt v3.
+- Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
+  duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp
   findings (H-02, M-01) that sit next to unrelated bot notes. It now requires
   the bot issue to be about the same bug class; regression-checked on all

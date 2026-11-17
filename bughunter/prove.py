@@ -230,6 +230,15 @@ def annotate_known(contest: Contest, workdir: Path) -> None:
     path.write_text(json.dumps(results, indent=1) + "\n")
 
 
+def mark_duplicate(contest: Contest, workdir: Path, cid: str, of: str) -> None:
+    path = workdir / contest.id / "prove" / "results.json"
+    res = json.loads(path.read_text())
+    if cid not in res or of not in res:
+        raise KeyError(f"unknown candidate {cid} or {of}")
+    res[cid]["duplicate_of"] = of
+    path.write_text(json.dumps(res, indent=1) + "\n")
+
+
 def confirmed(workdir: Path, contest: Contest) -> list[dict]:
     path = workdir / contest.id / "prove" / "results.json"
     if not path.exists():
@@ -239,5 +248,6 @@ def confirmed(workdir: Path, contest: Contest) -> list[dict]:
     for c in load_candidates(workdir, contest):
         r = res.get(c["cid"], {})
         if r.get("status") == "confirmed":
-            out.append({**c, "known_issue": r.get("known_issue", [])})
+            out.append({**c, "known_issue": r.get("known_issue", []),
+                        "duplicate_of": r.get("duplicate_of")})
     return out
