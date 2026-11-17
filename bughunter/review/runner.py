@@ -119,23 +119,7 @@ def review_one(client, params: dict, fn: dict) -> dict:
 def run(contest: Contest, workdir: Path, *, client=None, model: str = DEFAULT_MODEL,
         effort: str = "high", only: str | None = None, limit: int | None = None,
         concurrency: int = 4, dry_run: bool = False, force: bool = False) -> Path:
-    scan_dir = workdir / contest.id / "scan"
-    inv_path = scan_dir / "functions.json"
-    if not inv_path.exists():
-        raise FileNotFoundError(f"{inv_path} missing; run `bughunter scan` first")
-    inventory = json.loads(inv_path.read_text())
-    project = contest.project_root(workdir / contest.id / "repo")
-    out = workdir / contest.id / "review"
-    calls = out / "calls"
-    calls.mkdir(parents=True, exist_ok=True)
-
-    fns = select_functions(inventory, only)[:limit]
-    contexts = build_context(contest, project, fns)
-    jobs = []
-    for fn in fns:
-        params = request_params(model, effort, contexts[fn["file"]], fn)
-        path = calls / f"{_safe(fn['id'])}.json"
-        jobs.append((fn, params, path, _key(params)))
+    jobs, out = prepare(contest, workdir, model, effort, only, limit)
 
     if dry_run:
         chars = sum(len(prompts.INSTRUCTIONS) + len(p["system"][1]["text"]) +
@@ -179,6 +163,32 @@ def run(contest: Contest, workdir: Path, *, client=None, model: str = DEFAULT_MO
             for f in as_completed([ex.submit(work, j) for j in rest]):
                 _progress(f.result(), done := done + 1, len(todo))
 
+    records = [json.loads(p.read_text()) for _, _, p, _ in jobs if p.exists()]
+    return _write_outputs(contest, out, records, model, effort, len(jobs))
+
+
+def prepare(contest: Contest, workdir: Path, model: str, effort: str,
+            only: str | None = None, limit: int | None = None) -> tuple[list, Path]:
+    """Build (fn, request params, result path, cache key) for every selected function."""
+    inv_path = workdir / contest.id / "scan" / "functions.json"
+    if not inv_path.exists():
+        raise FileNotFoundError(f"{inv_path} missing; run `bughunter scan` first")
+    inventory = json.loads(inv_path.read_text())
+    project = contest.project_root(workdir / contest.id / "repo")
+    out = workdir / contest.id / "review"
+    calls = out / "calls"
+    calls.mkdir(parents=True, exist_ok=True)
+
+    fns = select_functions(inventory, only)[:limit]
+    contexts = build_context(contest, project, fns)
+    jobs = []
+    for fn in fns:
+        params = request_params(model, effort, contexts[fn["file"]], fn)
+        jobs.append((fn, params, calls / f"{_safe(fn['id'])}.json", _key(params)))
+    return jobs, out
+
+
+def finalize(contest: Contest, out: Path, jobs: list, model: str, effort: str) -> Path:
     records = [json.loads(p.read_text()) for _, _, p, _ in jobs if p.exists()]
     return _write_outputs(contest, out, records, model, effort, len(jobs))
 

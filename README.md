@@ -124,6 +124,23 @@ bughunter bench  contests/c4-2024-03-pooltogether.yaml                    # adds
   too), plus `matched_titles` for a human to confirm it's really the same bug.
   It also reports total candidates by severity, as a noise measure.
 
+**No-API mode (no credits needed).** Export the exact same prompts as files
+to a folder **outside the repo** (the repo holds the benchmark answers). Have
+a fresh agent with no prior context answer them, e.g. a Claude Code subagent
+told to read only that folder. Then import; answers are schema-validated:
+
+```bash
+bughunter review contests/<id>.yaml --export /tmp/packet [--only fn] [--limit N]
+# agent reads /tmp/packet/README.md, writes /tmp/packet/answers/*.json
+bughunter review contests/<id>.yaml --import /tmp/packet
+```
+
+First blind result (PoolTogether, `claimYieldFeeShares` only): a fresh subagent
+reported H-01 exactly. It gave the right line, high severity, the accounting
+category, and a usable PoC plan. Caveat: that function was chosen because it
+holds the known bug, so this shows the review *can* catch it. Recall and noise
+need the full 61-function run.
+
 **API key in cloud sessions:** add `ANTHROPIC_API_KEY` as an environment
 variable on the `vercel-bug-hunter` cloud environment (environment menu →
 Edit). New sessions pick it up.

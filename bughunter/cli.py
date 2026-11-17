@@ -37,6 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--concurrency", type=int, default=4)
     r.add_argument("--dry-run", action="store_true", help="build prompts, estimate size, no API calls")
     r.add_argument("--force", action="store_true", help="ignore cached per-function results")
+    r.add_argument("--export", type=Path, metavar="DIR",
+                   help="no-API mode: write review prompts to DIR (outside the repo) for an agent to answer")
+    r.add_argument("--import", dest="import_dir", type=Path, metavar="DIR",
+                   help="no-API mode: validate answers in DIR/answers and build candidates")
 
     sub.add_parser("doctor", help="check toolchain")
 
@@ -53,6 +57,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"scan written to {out}")
         print(f"  {m['functions']} functions, {m['leads_review_queue']} leads in review queue "
               f"({m['leads_total']} total), {m['elapsed_s']}s")
+        return 0
+
+    if a.cmd == "review" and (a.export or a.import_dir):
+        from bughunter.review import manual
+        if a.export:
+            info = manual.export(contest, a.workdir, a.export, a.only, a.limit)
+            print(f"exported {info['tasks']} task(s), {info['contexts']} context file(s) to {info['dest']}")
+        else:
+            out, counts = manual.import_answers(contest, a.workdir, a.import_dir, a.only, a.limit)
+            m = json.loads((out / "manifest.json").read_text())
+            print(f"imported {counts}; {m['candidates']} candidates {m['by_severity']} -> {out}")
         return 0
 
     if a.cmd == "review":

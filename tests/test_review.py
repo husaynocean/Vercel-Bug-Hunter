@@ -128,3 +128,29 @@ def test_benchmark_scores_review_candidates(tmp_path):
     r = benchmark.score_review(review, truth, ("high",))
     assert r["candidate_recall"] == 1.0 and r["candidate_category_recall"] == 1.0
     assert r["candidates_by_severity"] == {"high": 1, "medium": 1, "low": 0}
+
+
+def test_manual_export_import_roundtrip(setup, tmp_path):
+    from bughunter.review import manual
+    c, w = setup
+    pkt = tmp_path / "packet"
+    info = manual.export(c, w, pkt)
+    assert info["tasks"] == 2 and (pkt / "context-1.md").exists() and (pkt / "schema.json").exists()
+    idx = json.loads((pkt / ".index.json").read_text())
+    good, bad = sorted(idx)
+    (pkt / "answers" / f"{good}.json").write_text(json.dumps({
+        "function_id": idx[good]["function_id"], "summary": "s", "checklist": [],
+        "findings": [{"title": "t", "category": "accounting", "severity": "high", "confidence": "low",
+                      "functions": ["A.claim"], "root_cause": "r", "attack_path": ["a"],
+                      "preconditions": "p", "impact": "i", "poc_plan": "q"}]}))
+    (pkt / "answers" / f"{bad}.json").write_text('{"function_id": "x"}')
+    out, counts = manual.import_answers(c, w, pkt)
+    assert counts == {"imported": 1, "invalid": 1, "missing": 0, "stale": 0}
+    assert len(json.loads((out / "candidates.json").read_text())) == 1
+
+
+def test_manual_export_refuses_repo_paths(setup):
+    from bughunter.review import manual
+    c, w = setup
+    with pytest.raises(ValueError):
+        manual.export(c, w, ROOT / "packet")
