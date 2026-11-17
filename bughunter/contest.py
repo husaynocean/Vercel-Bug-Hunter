@@ -50,6 +50,7 @@ class Contest:
     url: str | None = None
     notes: str = ""
     out_of_scope: list[str] = field(default_factory=list)
+    known_issues: list[str] = field(default_factory=list)  # repo-relative automated reports
 
     @classmethod
     def load(cls, path: str | Path) -> "Contest":
@@ -62,6 +63,7 @@ class Contest:
             scope=scope, solc=raw.get("solc"), scope_file=raw["scope"].get("scope_file"),
             url=raw.get("url"), notes=raw.get("notes", ""),
             out_of_scope=raw.get("out_of_scope", []),
+            known_issues=raw.get("known_issues", []),
         )
 
     # ------------------------------------------------------------------ checkout

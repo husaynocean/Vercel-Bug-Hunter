@@ -32,3 +32,25 @@ def test_confirmed_filters_on_status(tmp_path):
         "c00": {"status": "confirmed", "candidate_id": "x#0"},
         "c01": {"status": "unverified_fix_does_not_break_test", "candidate_id": "y#0"}}))
     assert [x["id"] for x in prove.confirmed(tmp_path, c)] == ["x#0"]
+
+
+def test_known_issue_matching():
+    from bughunter import known
+    report = """### [M-02]<a name="m-02"></a> ERC-20: transfer() return values should be checked
+```solidity
+File: pkg/src/V.sol
+
+     |  // @audit-issue Check return value
+ 939 |  _asset.transfer(_receiver, _assets);
+```
+### [GAS-1] something
+File: src/V.sol
+617: yieldFeeBalance -= x;
+"""
+    refs = known.parse_report(report)
+    assert refs == {("pkg/src/V.sol", 939): ["M-02 ERC-20: transfer() return values should be checked"]}
+    patch = "--- a/src/V.sol\n+++ b/src/V.sol\n@@ -937,4 +937,4 @@\n a\n b\n-        _asset.transfer(r, x);\n+        _asset.safeTransfer(r, x);\n c\n"
+    assert known.changed_lines(patch)[0] == ("src/V.sol", 939)
+    assert known.match({("src/V.sol", 939): ["bot: M-02"]}, patch) == ["bot: M-02"]
+    gas_only = "--- a/src/V.sol\n+++ b/src/V.sol\n@@ -617 +617 @@\n-x\n+y\n"
+    assert known.match({("src/V.sol", 939): ["bot: M-02"]}, gas_only) == []

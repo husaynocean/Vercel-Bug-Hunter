@@ -192,6 +192,8 @@ def run(contest: Contest, workdir: Path, src: Path) -> tuple[Path, dict]:
         results[cid] = rec
         print(f"  {cid} {rec['status']:<34} {cand['title'][:70]}")
     (out / "results.json").write_text(json.dumps(results, indent=1) + "\n")
+    annotate_known(contest, workdir)
+    results = json.loads((out / "results.json").read_text())
     counts: dict[str, int] = {}
     for r in results.values():
         counts[r["status"]] = counts.get(r["status"], 0) + 1
@@ -201,10 +203,30 @@ def run(contest: Contest, workdir: Path, src: Path) -> tuple[Path, dict]:
     return out, counts
 
 
+def annotate_known(contest: Contest, workdir: Path) -> None:
+    """Flag confirmed results whose fix touches lines a known-issue report cites."""
+    from bughunter import known
+    out = workdir / contest.id / "prove"
+    path = out / "results.json"
+    if not path.exists():
+        return
+    refs = known.load(contest, workdir / contest.id / "repo")
+    results = json.loads(path.read_text())
+    for cid, r in results.items():
+        patch_path = out / "pocs" / f"{cid}.patch"
+        if r.get("status") == "confirmed" and patch_path.exists():
+            r["known_issue"] = known.match(refs, patch_path.read_text())
+    path.write_text(json.dumps(results, indent=1) + "\n")
+
+
 def confirmed(workdir: Path, contest: Contest) -> list[dict]:
     path = workdir / contest.id / "prove" / "results.json"
     if not path.exists():
         return []
     res = json.loads(path.read_text())
-    return [c for c in load_candidates(workdir, contest)
-            if res.get(c["cid"], {}).get("status") == "confirmed"]
+    out = []
+    for c in load_candidates(workdir, contest):
+        r = res.get(c["cid"], {})
+        if r.get("status") == "confirmed":
+            out.append({**c, "known_issue": r.get("known_issue", [])})
+    return out

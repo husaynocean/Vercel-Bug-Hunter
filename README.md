@@ -8,8 +8,8 @@ publishes as in scope.
 contest.yaml ─► checkout @ pinned commit ─► scope check ─► forge build
             ─► Slither + Semgrep (in-scope only) ─► leads + function inventory   [wk1 ✅]
             ─► LLM review per function × checklist                              [wk2 ✅ code; run pending key]
-            ─► Foundry PoC per suspected bug, local fork; keep only passing      [wk3]
-            ─► contest-format report draft → human review → submit              [wk3/4]
+            ─► Foundry PoC per suspected bug; keep only test-confirmed           [wk3 ✅]
+            ─► contest-format report draft → human review → submit              [wk3 ✅]
             ─► benchmark: 10 past contests, % known Highs caught                [wk4]
 ```
 
@@ -162,6 +162,50 @@ All 61 answers validated. 6 candidates (1 high, 3 medium, 2 low).
   proofs decide which survive.
 - **Usage:** about 0.9M subagent tokens (each helper re-reads the ~19k-token
   context). This came from the Claude plan, not an API key.
+
+## Proof step + report drafts (week 3)
+
+```bash
+bughunter prove  contests/<id>.yaml                       # list candidates (c00, c01, ...)
+bughunter prove  contests/<id>.yaml --export /tmp/poc-A --cids c00,c05
+# an agent writes project/test/bughunter/<cid>.t.sol + answers/<cid>.patch/.json
+bughunter prove  contests/<id>.yaml --run /tmp/poc-A      # independent verification
+bughunter report contests/<id>.yaml                       # drafts for confirmed, non-known findings
+```
+
+- **Confirmed** means the PoC passes on the audited commit **and** fails once
+  the proposed in-scope fix is applied. Both are re-run by `prove --run` in the
+  clean contest checkout. It copies only the test file and never trusts the
+  writer's claims. A test that passes regardless of the code is caught (status
+  `unverified_fix_does_not_break_test`).
+- **Known-issue filter:** contests publish automated reports (bot report,
+  4naly3er) before they start, and issues listed there aren't paid. A
+  confirmed finding whose fix touches lines those reports cite (H/M/L
+  sections, not gas/NC) is listed in `report/known-issues.md` instead of
+  being drafted. Configure via `known_issues:` in the contest YAML.
+- **Drafts** in `work/<id>/report/` follow Code4rena's layout: lines of code
+  (GitHub links at the audited commit), details, impact, PoC steps, the test,
+  the mitigation diff and the assessed type. They're drafts for you to review.
+  Nothing is ever submitted automatically.
+- **Fork tests:** PoolTogether's PoCs are unit tests on the contest's own
+  mocks. Contests whose bugs need live protocol state will need an RPC URL
+  (a network host plus usually a key) for `forge test --fork-url`. Not
+  wired up yet.
+
+### Week 3 result: PoolTogether
+
+| cid | candidate | proof | known issue? | drafted |
+|---|---|---|---|---|
+| c00 | **H-01** partial fee claim wipes unclaimed fees | **confirmed** | no | **yes (High)** |
+| c01 | raw `approve` breaks USDT-like deposits | confirmed | bot M-04 | no |
+| c02 | raw `transfer` in `_withdraw` locks funds | confirmed | bot M-02/M-03 | no (published M-06 extended this) |
+| c03 | raw `transferFrom` in `deployVault` | confirmed | bot M-02/M-03 | no |
+| c04 | `maxDeposit` over-reports when buffer is empty | confirmed | no | yes (Low) |
+| c05 | fee-recipient change hands over unclaimed fees | **rejected**: trusted owner, no loss | n/a | no |
+
+**Confirmed High recall: 1/1**, and the only drafted High is the real one.
+All PoCs were written by context-free subagents (about 320k tokens of plan
+usage).
 
 **API key in cloud sessions:** add `ANTHROPIC_API_KEY` as an environment
 variable on the `vercel-bug-hunter` cloud environment (environment menu →

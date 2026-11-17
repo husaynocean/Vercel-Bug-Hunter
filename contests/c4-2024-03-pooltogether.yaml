@@ -19,6 +19,12 @@ scope:
     - pt-v5-vault/src/abstract/HookManager.sol
     - pt-v5-vault/src/interfaces/IVaultHooks.sol
 
+# Automated reports published before the contest: their issues are "known"
+# and not paid, so confirmed findings touching those lines are flagged.
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
 out_of_scope:
   - PrizePool, TwabController, LiquidationPair, Claimer (external PoolTogether deps)
   - fee-on-transfer assets; yield vaults with fees or that lose assets
