@@ -219,7 +219,8 @@ root cause), not just a location match.
 | Canto 2023-11 | v1 | 1 | **1/1** | 0/1 (rated Medium) | 1/2 | 0/3/0 | 0 | ~0.4M |
 | Kelp 2023-11 | v2 | 3 | **2/3** (H-02, H-03; missed H-01) | 2/2 | 2/2 | 2/4/0 | 1 | ~0.7M |
 | DYAD 2024-04 | v2 | 10 | **6/10** (H-01,03,05,06,08,09) | 4/6 (H-03, H-08 rated Medium) | 0/9 | 4/2/0 (+1 duplicate) | 0 | ~0.6M |
-| **total so far** | | **15** | **10/15** | **7/10** | **4/21** | | | **~2.9M** |
+| Coinbase 2024-03 | v2 | 1 | **1/1** (split into 2 candidates) | 0/1 (rated Medium) | 1/2 | 0/2/1 | 0 | ~0.4M |
+| **total so far** | | **16** | **11/16** | **7/11** | **5/23** | | | **~3.3M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
@@ -240,6 +241,15 @@ Notes:
   liquidation-economics issues (partial liquidation, incentives, bonus math);
   H-04 needs an unlicensed fake vault. The review still underrates DoS-style
   "funds locked" Highs (H-03, H-08 came back Medium). Candidate for prompt v3.
+- Coinbase: static tools gave no lead at all on the High's function; the LLM
+  review found it (cross-chain replay of `removeOwnerAtIndex` by index) and
+  the PoC simulated two chains with snapshots. It split the High into its two
+  ingredients (replay by index: Medium; no last-owner guard: Low) and rated
+  neither High.
+- **Severity is now the main weakness:** 4 of 11 found Highs were drafted
+  below High (Canto H-01, DYAD H-03/H-08, Coinbase H-01). The prompt-v2 rule
+  helped for direct losses but not for lock-ups/replays. Proposed fix: a
+  severity re-assessment after the proof, using the proven impact.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp
