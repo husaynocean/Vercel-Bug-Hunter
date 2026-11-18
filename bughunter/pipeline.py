@@ -31,6 +31,14 @@ def scan(contest: Contest, workdir: Path, commercial: bool = False, build: bool 
     out = workdir / contest.id / "scan"
     out.mkdir(parents=True, exist_ok=True)
 
+    marker = repo / ".git" / "bughunter-setup-done"
+    if contest.setup and not marker.exists():
+        for cmd in contest.setup:  # e.g. installing JS-managed Solidity deps (pnpm workspaces)
+            r = subprocess.run(cmd, shell=True, cwd=repo, capture_output=True, text=True, env=toolchain.env())
+            if r.returncode != 0:
+                raise RuntimeError(f"setup step failed: {cmd}\n{r.stdout[-1500:]}\n{r.stderr[-1500:]}")
+        marker.write_text("\n".join(contest.setup) + "\n")
+
     if build:
         r = subprocess.run(["forge", "build", "--build-info"], cwd=project, capture_output=True, text=True,
                            env=toolchain.env())

@@ -50,6 +50,11 @@ def main(argv: list[str] | None = None) -> int:
     pv.add_argument("--duplicate", action="append", metavar="CID:OF",
                     help="mark a confirmed candidate as a duplicate of another (kept out of drafts)")
 
+    sv = sub.add_parser("severity", help="post-proof severity re-check (judge pass)")
+    sv.add_argument("contest", type=Path)
+    sv.add_argument("--export", type=Path, metavar="DIR")
+    sv.add_argument("--import", dest="import_dir", type=Path, metavar="DIR")
+
     rp = sub.add_parser("report", help="draft contest write-ups for confirmed findings")
     rp.add_argument("contest", type=Path)
 
@@ -113,6 +118,15 @@ def main(argv: list[str] | None = None) -> int:
         else:
             for c in prove.load_candidates(a.workdir, contest):
                 print(f"{c['cid']} [{c['severity']}] {c['title']}")
+        return 0
+
+    if a.cmd == "severity":
+        from bughunter import severity
+        if a.export:
+            info = severity.export(contest, a.workdir, a.export)
+            print(f"exported {len(info['findings'])} finding(s) {info['findings']} to {info['dest']}")
+        elif a.import_dir:
+            print(f"severity verdicts {severity.import_verdicts(contest, a.workdir, a.import_dir)}")
         return 0
 
     if a.cmd == "report":

@@ -46,6 +46,13 @@ def select_functions(inventory: list[dict], only: str | None = None) -> list[dic
 def build_context(contest: Contest, project: Path, fns: list[dict]) -> dict[str, str]:
     """file -> context string. One shared context when the scope is small enough."""
     files = {p: (project / p).read_text() for p in contest.scope.project_relative()}
+    # Multi-part contests: the other parts' in-scope files are also audited code that this
+    # part calls into (e.g. Revolution's emitter -> protocol-rewards), so include them too.
+    repo = project if contest.scope.project_dir in (".", "") else project.parents[
+        len(Path(contest.scope.project_dir).parts) - 1]
+    for f in contest.sibling_files:
+        if (repo / f).is_file():
+            files[f"(other in-scope part) {f}"] = (repo / f).read_text()
     if sum(len(t) for t in files.values()) <= MAX_SHARED_CONTEXT_CHARS:
         shared = prompts.contest_context(contest, files)
         return {f["file"]: shared for f in fns}

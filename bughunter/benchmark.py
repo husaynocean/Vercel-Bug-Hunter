@@ -37,13 +37,16 @@ def _targets(t: dict) -> set[tuple[str, str]]:
     return out
 
 
-def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None = None) -> dict | None:
+def score_review(review_dir: Path, truth: dict, severities, only_ids: set | None = None,
+                 severity_override: dict | None = None) -> dict | None:
     path = review_dir / "candidates.json"
     if not path.exists():
         return None
     cands = json.loads(path.read_text())
     if only_ids is not None:
         cands = [c for c in cands if c["id"] in only_ids]
+    if severity_override:
+        cands = [{**c, "severity": severity_override.get(c["id"], c["severity"])} for c in cands]
     rows = []
     for t in truth["findings"]:
         if t["severity"] not in severities:
@@ -103,7 +106,19 @@ def score(scan_dir: Path, truth_file: Path, severities=("high",)) -> dict:
             "review": score_review(scan_dir.parent / "review", truth, severities),
             # week 3: only candidates whose Foundry PoC passed AND failed under the fix
             "confirmed": score_review(scan_dir.parent / "review", truth, severities,
-                                      only_ids=_confirmed_ids(scan_dir.parent / "prove"))}
+                                      only_ids=_confirmed_ids(scan_dir.parent / "prove")),
+            # after the post-proof severity re-check (judge pass), where it has run
+            "confirmed_judged": score_review(scan_dir.parent / "review", truth, severities,
+                                             only_ids=_confirmed_ids(scan_dir.parent / "prove"),
+                                             severity_override=_final_sev(scan_dir.parent / "prove"))}
+
+
+def _final_sev(prove_dir: Path) -> dict:
+    path = prove_dir / "results.json"
+    if not path.exists():
+        return {}
+    return {r["candidate_id"]: r["final_severity"] for r in json.loads(path.read_text()).values()
+            if r.get("final_severity")}
 
 
 def _confirmed_ids(prove_dir: Path) -> set | None:

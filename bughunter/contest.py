@@ -53,6 +53,7 @@ class Contest:
     known_issues: list[str] = field(default_factory=list)  # repo-relative automated reports
     sibling_files: list[str] = field(default_factory=list)  # other parts' scope (multi-project contests)
     group: str | None = None                                 # benchmark group for multi-part contests
+    setup: list[str] = field(default_factory=list)          # shell commands run in the repo after checkout
 
     @classmethod
     def load(cls, path: str | Path) -> "Contest":
@@ -68,6 +69,7 @@ class Contest:
             known_issues=raw.get("known_issues", []),
             sibling_files=raw["scope"].get("sibling_files", []),
             group=raw.get("group"),
+            setup=raw.get("setup", []),
         )
 
     # ------------------------------------------------------------------ checkout

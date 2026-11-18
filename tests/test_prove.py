@@ -59,3 +59,22 @@ File: src/V.sol
     assert known.match({("src/V.sol", 939): ["bot: L-11 Lack of two-step update"]}, patch, "accounting") == []
     gas_only = "--- a/src/V.sol\n+++ b/src/V.sol\n@@ -617 +617 @@\n-x\n+y\n"
     assert known.match({("src/V.sol", 939): ["bot: M-02"]}, gas_only) == []
+
+
+def test_severity_verdict_import(tmp_path):
+    from bughunter import severity
+    c = Contest(id="c1", platform="c4", repo="r", commit="c" * 40, scope=Scope(files=["src/A.sol"]))
+    pdir = tmp_path / "w" / "c1" / "prove"
+    pdir.mkdir(parents=True)
+    (pdir / "results.json").write_text(json.dumps({
+        "c00": {"status": "confirmed", "candidate_id": "x#0"},
+        "c01": {"status": "confirmed", "candidate_id": "y#0"}}))
+    pkt = tmp_path / "pkt"
+    (pkt / "answers").mkdir(parents=True)
+    (pkt / ".index.json").write_text(json.dumps({"cids": ["c00", "c01"]}))
+    (pkt / "answers" / "c00.json").write_text(json.dumps(
+        {"cid": "c00", "severity": "high", "rationale": "Permanent freeze of user funds shown by the PoC."}))
+    (pkt / "answers" / "c01.json").write_text(json.dumps({"cid": "c01", "severity": "critical", "rationale": "x" * 20}))
+    counts = severity.import_verdicts(c, tmp_path / "w", pkt)
+    assert counts == {"imported": 1, "invalid": 1, "missing": 0}
+    assert severity.final_severities(tmp_path / "w", c) == {"x#0": "high"}

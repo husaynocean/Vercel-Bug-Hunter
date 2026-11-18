@@ -250,6 +250,16 @@ Notes:
   below High (Canto H-01, DYAD H-03/H-08, Coinbase H-01). The prompt-v2 rule
   helped for direct losses but not for lock-ups/replays. Proposed fix: a
   severity re-assessment after the proof, using the proven impact.
+- **Severity re-check (judge pass, `bughunter severity`)**: after the proof, a
+  context-free judge re-rates each confirmed finding from the proven impact
+  under Code4rena rules; drafts use its rating and show the review's.
+  Back-tested on the 5 finished contests, counted by hand per published High:
+  7/11 -> 7/11 Highs rated High (fixed Canto H-01; regressed Kelp H-03,
+  first-depositor attack). It also downgraded both unawarded Kelp admin-DoS
+  candidates to Low. Net: it cuts noise but does not fix High severity. The
+  judge is stricter than C4 was on griefing and first-depositor attacks. Not
+  tuned further, to avoid overfitting to this benchmark; severity stays a
+  human review item.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp

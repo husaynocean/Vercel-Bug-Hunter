@@ -249,5 +249,7 @@ def confirmed(workdir: Path, contest: Contest) -> list[dict]:
         r = res.get(c["cid"], {})
         if r.get("status") == "confirmed":
             out.append({**c, "known_issue": r.get("known_issue", []),
-                        "duplicate_of": r.get("duplicate_of")})
+                        "duplicate_of": r.get("duplicate_of"),
+                        "final_severity": r.get("final_severity"),
+                        "severity_rationale": r.get("severity_rationale")})
     return out

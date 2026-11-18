@@ -1,0 +1,45 @@
+# Code4rena -- Revolution Protocol (Dec 2023). Two Foundry projects in a pnpm monorepo,
+# split into two parts under one benchmark group. Deps come from pnpm (node_modules).
+id: c4-2023-12-revolution-revolution
+group: c4-2023-12-revolution
+platform: code4rena
+url: https://code4rena.com/audits/2023-12-revolution-protocol
+repo: https://github.com/code-423n4/2023-12-revolutionprotocol.git
+commit: f39a035261a8e5f6330ff0e29346ccadb753a50f
+solc: "0.8.22"
+
+setup:
+  - pnpm install --frozen-lockfile
+
+scope:
+  project_dir: packages/revolution
+  scope_file: scope.txt
+  files:
+    - packages/revolution/src/MaxHeap.sol
+    - packages/revolution/src/CultureIndex.sol
+    - packages/revolution/src/NontransferableERC20Votes.sol
+    - packages/revolution/src/ERC20TokenEmitter.sol
+    - packages/revolution/src/AuctionHouse.sol
+    - packages/revolution/src/VerbsToken.sol
+    - packages/revolution/src/libs/VRGDAC.sol
+  sibling_files:
+    - packages/protocol-rewards/src/abstract/TokenEmitter/TokenEmitterRewards.sol
+    - packages/protocol-rewards/src/abstract/RewardSplits.sol
+
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - Inherited base contracts and libraries not listed in scope.txt (e.g. ERC721CheckpointableUpgradeable, VotesUpgradeable, descriptor)
+  - OpenZeppelin, solmate, Zora-style protocol rewards contract itself
+
+notes: >-
+  Revolution: a DAO where community members upload art (CultureIndex.createPiece) and vote with
+  non-transferable ERC20 governance tokens plus VerbsToken (ERC721) votes; the top-voted piece (tracked in a
+  MaxHeap) is minted as a VerbsToken and auctioned daily (AuctionHouse). Auction proceeds are split between
+  the DAO treasury, the creators (part as ETH, part used to buy governance tokens via ERC20TokenEmitter, per
+  entropyRateBps) and protocol rewards (RewardSplits / TokenEmitterRewards). ERC20TokenEmitter sells
+  governance tokens on a VRGDA schedule (VRGDAC) and splits the ETH between treasury, creators and protocol
+  rewards. A piece must reach a quorum of the total vote supply at creation to be auctioned. Owner/DAO roles
+  are trusted. Contracts are upgradeable (UUPS).
