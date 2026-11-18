@@ -1,0 +1,10 @@
+# https://code4rena.com/reports/2024-03-coinbase (code-423n4/2024-03-coinbase-findings). Benchmark only.
+contest: c4-2024-03-coinbase
+findings:
+  - {id: H-01, severity: high, contract: MultiOwnable, bug_class: access-control,
+     functions: [removeOwnerAtIndex, CoinbaseSmartWallet.executeWithoutChainIdValidation, CoinbaseSmartWallet.canSkipChainIdValidation],
+     title: "Remove owner calls can be replayed to remove a different owner at the same index; no last-owner guard"}
+  - {id: M-01, severity: medium, contract: MagicSpend, bug_class: accounting, functions: [validatePaymasterUserOp],
+     title: "Balance check during MagicSpend validation cannot ensure enough balance to cover the requested fund"}
+  - {id: M-02, severity: medium, contract: MagicSpend, bug_class: access-control, functions: [withdraw, validatePaymasterUserOp],
+     title: "Users can front run the signature of the paymaster operation"}

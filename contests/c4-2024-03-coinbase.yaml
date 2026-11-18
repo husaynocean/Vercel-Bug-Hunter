@@ -1,0 +1,44 @@
+# Code4rena -- Coinbase Smart Wallet + MagicSpend (Mar 2024). Past contest, public findings.
+id: c4-2024-03-coinbase
+platform: code4rena
+url: https://code4rena.com/audits/2024-03-smart-wallet
+repo: https://github.com/code-423n4/2024-03-coinbase.git
+commit: 7f1247206b40c8012589c0d2639471a84cc6c2dd
+solc: "0.8.23"
+
+scope:
+  project_dir: .
+  scope_file: scope.txt
+  files:
+    - src/SmartWallet/MultiOwnable.sol
+    - src/SmartWallet/ERC1271.sol
+    - src/SmartWallet/CoinbaseSmartWallet.sol
+    - src/SmartWallet/CoinbaseSmartWalletFactory.sol
+    - src/WebAuthnSol/WebAuthn.sol
+    - src/FreshCryptoLib/FCL.sol
+    - src/MagicSpend/MagicSpend.sol
+
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - ERC-4337 EntryPoint (eth-infinitism account-abstraction v0.6), Solady, OpenZeppelin
+  - FreshCryptoLib functions reached other than via ecdsa_verify
+
+notes: >-
+  ERC-4337 smart wallet (CoinbaseSmartWallet, UUPS-upgradeable, deployed via CoinbaseSmartWalletFactory) with
+  multiple owners (MultiOwnable): owners are Ethereum addresses or secp256r1 passkeys (WebAuthn verified with
+  FreshCryptoLib). Signatures are ERC-1271 with replay-safe hashing. validateUserOp normally binds the chain id;
+  executeWithoutChainIdValidation (EntryPoint only) lets whitelisted owner-management/upgrade calls
+  (canSkipChainIdValidation) be signed once and replayed on every chain to keep owners in sync. MagicSpend is
+  a Coinbase-run paymaster/withdraw contract: users present Coinbase-signed WithdrawRequests to withdraw ETH or
+  pay gas for a user operation. Deployed to Ethereum, Base, Optimism, Arbitrum, Polygon, BNB, Avalanche,
+  Gnosis. Roles: wallet owners or the wallet itself manage owners and upgrades; only EntryPoint calls
+  executeWithoutChainIdValidation and validateUserOp; MagicSpend owner (Coinbase) signs withdraw requests
+  and calls ownerWithdraw/entryPoint* functions. Known issues (not eligible): cross-chain replay relies on
+  gas values from one chain being accepted on others; WebAuthn knowingly skips some validation steps
+  (see WebAuthn.sol comments); FCL issues only count via ecdsa_verify, and two previously reported FCL bugs
+  (ecAff_isOnCurve condition; ecZZ_mulmuladd_S_asm infinite loop for (-Gx,-Gy)); as a paymaster EntryPoint
+  debits MagicSpend slightly more than actualGasCost; validatePaymasterUserOp reads address.balance,
+  violating ERC-7562.
