@@ -220,7 +220,8 @@ root cause), not just a location match.
 | Kelp 2023-11 | v2 | 3 | **2/3** (H-02, H-03; missed H-01) | 2/2 | 2/2 | 2/4/0 | 1 | ~0.7M |
 | DYAD 2024-04 | v2 | 10 | **6/10** (H-01,03,05,06,08,09) | 4/6 (H-03, H-08 rated Medium) | 0/9 | 4/2/0 (+1 duplicate) | 0 | ~0.6M |
 | Coinbase 2024-03 | v2 | 1 | **1/1** (split into 2 candidates) | 0/1 (rated Medium) | 1/2 | 0/2/1 | 0 | ~0.4M |
-| **total so far** | | **16** | **11/16** | **7/11** | **5/23** | | | **~3.3M** |
+| Basin 2023-07 | v2 + judge | 1 | **1/1** (shift + sync) | 0/1 (Medium, review and judge) | 3/13 (M-01, M-02, M-07) | 0/2/7 | 0 | ~0.9M |
+| **total so far** | | **17** | **12/17** | **7/12** | **8/36** | | | **~4.2M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
@@ -260,6 +261,11 @@ Notes:
   judge is stricter than C4 was on griefing and first-depositor attacks. Not
   tuned further, to avoid overfitting to this benchmark; severity stays a
   human review item.
+- Basin: the proof step rejected 2 false positives (zero-reserve oracle reads
+  that the math library actually handles). Two awarded Mediums (M-01 memory
+  read, M-02 slot confusion) were found but reproduced as "latent" and rated
+  Low; C4 rated them Medium. The judge also downgraded M-07 to Low. Severity
+  calibration against C4 remains the weak point.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp

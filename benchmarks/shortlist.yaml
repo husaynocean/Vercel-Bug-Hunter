@@ -11,7 +11,7 @@ contests:
   - {id: 2024-04-dyad,               highs: 10, sloc: ~570, status: done}       # 6/10 Highs found + proven       # scope incl. deploy script; Highs overlap heavily
   - {id: 2024-03-coinbase,           highs: 1,  sloc: 786,  status: done}       # H-01 found + proven (rated Medium)
   - {id: 2023-12-revolutionprotocol, highs: 4,  sloc: 1000, status: blocked}    # pnpm deps need GitHub repo access (forge-std, ds-test); configs ready       # monorepo (packages/*)
-  - {id: 2023-07-basin,              highs: 1,  sloc: 1145, status: todo}       # no scope.txt: use README table; skip fork-only integration test
+  - {id: 2023-07-basin,              highs: 1,  sloc: 1145, status: done}       # H-01 found + proven (rated Medium)       # no scope.txt: use README table; skip fork-only integration test
   - {id: 2024-02-ai-arena,           highs: 8,  sloc: 1271, status: todo}
   - {id: 2023-12-particle,           highs: 4,  sloc: 1299, status: todo}       # Uniswap v3 LP math; check tests run without a fork
   - {id: 2023-10-wildcat,            highs: 6,  sloc: 2332, status: todo}       # largest; run last
