@@ -266,6 +266,12 @@ Notes:
   read, M-02 slot confusion) were found but reproduced as "latent" and rated
   Low; C4 rated them Medium. The judge also downgraded M-07 to Low. Severity
   calibration against C4 remains the weak point.
+- Blindness incident (AI Arena): the first review launch included a hint
+  ("consider what the contract does NOT override") written after reading that
+  two published Highs are missing overrides. It was caught before any answer
+  was written; all four reviewers were stopped, the packet re-exported, and the
+  review relaunched with the standard prompt. Rule kept: reviewer prompts are
+  identical across contests and never edited after reading a contest's answers.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp

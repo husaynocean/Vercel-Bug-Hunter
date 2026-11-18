@@ -1,0 +1,44 @@
+# https://code4rena.com/reports/2024-02-ai-arena (code-423n4/2024-02-ai-arena-findings). Benchmark only.
+# H-01/H-02 are MISSING overrides; mapped to the existing transfer functions a reviewer would see.
+contest: c4-2024-02-ai-arena
+findings:
+  - {id: H-01, severity: high, contract: FighterFarm, bug_class: access-control,
+     functions: [safeTransferFrom, transferFrom, _ableToTransfer],
+     title: "A locked fighter can be transferred (4-arg safeTransferFrom not overridden)"}
+  - {id: H-02, severity: high, contract: GameItems, bug_class: access-control, functions: [safeTransferFrom],
+     title: "Non-transferable GameItems can be transferred with safeBatchTransferFrom"}
+  - {id: H-03, severity: high, contract: FighterFarm, bug_class: access-control, functions: [redeemMintPass],
+     title: "redeemMintPass lets players fully customize fighter type and rare attributes"}
+  - {id: H-04, severity: high, contract: FighterFarm, bug_class: access-control, functions: [reRoll],
+     title: "Reroll with a different fighterType bypasses maxRerollsAllowed"}
+  - {id: H-05, severity: high, contract: RankedBattle, bug_class: rounding-precision,
+     functions: [updateBattleRecord, _addResultPoints, stakeNRN],
+     title: "Tiny stake yields zero curStakeAtRisk on loss but equal rewardPoints on win"}
+  - {id: H-06, severity: high, contract: FighterFarm, bug_class: rounding-precision, functions: [reRoll],
+     title: "reRoll won't work for token id > 255 (uint8 input)"}
+  - {id: H-07, severity: high, contract: FighterFarm, bug_class: accounting, functions: [incrementGeneration, _createNewFighter],
+     title: "Fighters cannot be minted after the initial generation (uninitialized numElements)"}
+  - {id: H-08, severity: high, contract: MergingPool, bug_class: reentrancy,
+     functions: [claimRewards, FighterFarm.mintFromMergingPool, FighterFarm._createNewFighter],
+     title: "Reentrancy in claimRewards mints extra fighters"}
+  - {id: M-01, severity: medium, contract: AiArenaHelper, bug_class: rounding-precision, functions: [dnaToIndex, createPhysicalAttributes],
+     title: "Rarity rank combinations are not uniformly generated"}
+  - {id: M-02, severity: medium, contract: Neuron, bug_class: access-control, functions: [addMinter, addStaker, addSpender],
+     title: "Minter / Staker / Spender roles can never be revoked"}
+  - {id: M-03, severity: medium, contract: MergingPool, bug_class: access-control,
+     functions: [claimRewards, FighterFarm.mintFromMergingPool],
+     title: "Fighter from mintFromMergingPool can have arbitrary weight and element"}
+  - {id: M-04, severity: medium, contract: MergingPool, bug_class: dos, functions: [claimRewards, RankedBattle.claimNRN],
+     title: "DoS in claimRewards / claimNRN after many rounds"}
+  - {id: M-05, severity: medium, contract: FighterFarm, bug_class: oracle-manipulation,
+     functions: [claimFighters, reRoll, mintFromMergingPool, _createNewFighter],
+     title: "Mint NFT with desired attributes by reverting the transaction"}
+  - {id: M-06, severity: medium, contract: FighterFarm, bug_class: accounting,
+     functions: [_ableToTransfer, transferFrom, RankedBattle.updateBattleRecord],
+     title: "NFTs transferable while StakeAtRisk remains; wins underflow / past losses recovered"}
+  - {id: M-07, severity: medium, contract: AiArenaHelper, bug_class: rounding-precision, functions: [dnaToIndex],
+     title: "Erroneous probability calculation in physical attributes"}
+  - {id: M-08, severity: medium, contract: GameItems, bug_class: access-control, functions: [setAllowedBurningAddresses],
+     title: "Burner role cannot be revoked"}
+  - {id: M-09, severity: medium, contract: GameItems, bug_class: access-control, functions: [mint, safeTransferFrom],
+     title: "Daily allowance limits bypassed via alias accounts and transfers"}
