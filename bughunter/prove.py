@@ -230,6 +230,17 @@ def annotate_known(contest: Contest, workdir: Path) -> None:
     path.write_text(json.dumps(results, indent=1) + "\n")
 
 
+_SEV = {"low": 0, "medium": 1, "high": 2}
+
+
+def _max_sev(review: str | None, judged: str | None) -> str | None:
+    if not judged:
+        return None
+    if review not in _SEV:
+        return judged
+    return judged if _SEV[judged] > _SEV[review] else review
+
+
 def mark_duplicate(contest: Contest, workdir: Path, cid: str, of: str) -> None:
     path = workdir / contest.id / "prove" / "results.json"
     res = json.loads(path.read_text())
@@ -250,6 +261,10 @@ def confirmed(workdir: Path, contest: Contest) -> list[dict]:
         if r.get("status") == "confirmed":
             out.append({**c, "known_issue": r.get("known_issue", []),
                         "duplicate_of": r.get("duplicate_of"),
-                        "final_severity": r.get("final_severity"),
+                        # The judge may raise a rating but never lower it: back-testing showed it
+                        # downgrading real Highs (Kelp H-03, AI Arena H-04/H-08) more often than
+                        # fixing under-rated ones, and an under-rated High costs far more.
+                        "final_severity": _max_sev(c.get("severity"), r.get("final_severity")),
+                        "judge_severity": r.get("final_severity"),
                         "severity_rationale": r.get("severity_rationale")})
     return out

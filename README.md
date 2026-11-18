@@ -221,7 +221,8 @@ root cause), not just a location match.
 | DYAD 2024-04 | v2 | 10 | **6/10** (H-01,03,05,06,08,09) | 4/6 (H-03, H-08 rated Medium) | 0/9 | 4/2/0 (+1 duplicate) | 0 | ~0.6M |
 | Coinbase 2024-03 | v2 | 1 | **1/1** (split into 2 candidates) | 0/1 (rated Medium) | 1/2 | 0/2/1 | 0 | ~0.4M |
 | Basin 2023-07 | v2 + judge | 1 | **1/1** (shift + sync) | 0/1 (Medium, review and judge) | 3/13 (M-01, M-02, M-07) | 0/2/7 | 0 | ~0.9M |
-| **total so far** | | **17** | **12/17** | **7/12** | **8/36** | | | **~4.2M** |
+| AI Arena 2024-02 | v2 + judge | 8 | **8/8** | 4/8 | 5/9 (M-02, M-03, M-05, M-06, M-07) | 4/10/4 | 0 | ~1.2M |
+| **total so far** | | **25** | **20/25** | **12/20** (final, upgrade-only judge) | **13/45** | | | **~5.4M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
@@ -272,6 +273,14 @@ Notes:
   was written; all four reviewers were stopped, the packet re-exported, and the
   review relaunched with the standard prompt. Rule kept: reviewer prompts are
   identical across contests and never edited after reading a contest's answers.
+- AI Arena: all 8 published Highs found blind and proven (18 of 19 unique
+  candidates confirmed; the 19th was only reachable through another bug),
+  including two "missing override" Highs that a per-function review could
+  in principle miss. The judge downgraded two real Highs (H-04, H-08) and
+  read the code for only 5 of 18 findings.
+- **Severity policy change:** the judge may now raise a rating but never lower
+  it; drafts show both. Back-test over 7 contests: review alone 11/20 found
+  Highs rated High, judge-as-authority 10/20, upgrade-only 12/20.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp

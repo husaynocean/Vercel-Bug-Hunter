@@ -78,3 +78,10 @@ def test_severity_verdict_import(tmp_path):
     counts = severity.import_verdicts(c, tmp_path / "w", pkt)
     assert counts == {"imported": 1, "invalid": 1, "missing": 0}
     assert severity.final_severities(tmp_path / "w", c) == {"x#0": "high"}
+
+
+def test_judge_can_raise_but_not_lower_severity():
+    assert prove._max_sev("high", "medium") == "high"
+    assert prove._max_sev("medium", "high") == "high"
+    assert prove._max_sev("medium", None) is None
+    assert prove._max_sev(None, "low") == "low"

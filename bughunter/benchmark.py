@@ -117,8 +117,11 @@ def _final_sev(prove_dir: Path) -> dict:
     path = prove_dir / "results.json"
     if not path.exists():
         return {}
-    return {r["candidate_id"]: r["final_severity"] for r in json.loads(path.read_text()).values()
-            if r.get("final_severity")}
+    from bughunter.prove import _max_sev
+    cands = {c["id"]: c for c in json.loads((prove_dir.parent / "review" / "candidates.json").read_text())}
+    return {r["candidate_id"]: _max_sev(cands[r["candidate_id"]]["severity"], r["final_severity"])
+            for r in json.loads(path.read_text()).values()
+            if r.get("final_severity") and r["candidate_id"] in cands}
 
 
 def _confirmed_ids(prove_dir: Path) -> set | None:
