@@ -1,0 +1,41 @@
+# Code4rena -- Particle LAMM (Dec 2023). Past contest, public findings.
+# The project's own tests fork mainnet (Uniswap V3 at hard-coded addresses); PoCs must deploy locally.
+id: c4-2023-12-particle
+platform: code4rena
+url: https://code4rena.com/audits/2023-12-particle-leverage-amm-protocol
+repo: https://github.com/code-423n4/2023-12-particle.git
+commit: a3af40839b24aa13f5764d4f84933dbfa8bc8134
+solc: "0.8.23"
+
+scope:
+  project_dir: .
+  scope_file: scope.txt
+  files:
+    - contracts/protocol/ParticlePositionManager.sol
+    - contracts/protocol/ParticleInfoReader.sol
+    - contracts/interfaces/IParticlePositionManager.sol
+    - contracts/libraries/Base.sol
+    - contracts/libraries/LiquidityPosition.sol
+    - contracts/libraries/SwapPosition.sol
+    - contracts/libraries/Lien.sol
+    - contracts/libraries/Structs.sol
+    - contracts/libraries/Errors.sol
+
+known_issues:
+  - 4naly3er-report.md
+
+out_of_scope:
+  - Uniswap-derived libraries (FullMath, TickMath, LiquidityAmounts, PoolAddress, INonfungiblePositionManager) and Uniswap V3 itself
+  - The dex aggregator used for swaps (1inch in production), owner/admin role
+
+notes: >-
+  Particle LAMM enables permissionless leverage trading for any ERC20 by borrowing concentrated liquidity from
+  Uniswap V3. LPs deposit Uniswap V3 position NFTs into ParticlePositionManager (mint / onERC721Received) and
+  can increase, decrease, collect and reclaim liquidity; reclaimLiquidity starts a renewal cutoff after which
+  borrowers' loans can be liquidated once the loan term expires. Traders openPosition: borrow liquidity from
+  an LP position (a lien), swap via the dex aggregator with user-supplied swap data, post margin and token
+  premiums that pay the LP's fees over time; addPremium tops up premiums; closePosition repays by re-adding
+  the borrowed liquidity; liquidatePosition lets anyone close an underwater or expired position for a
+  liquidation reward. Fees owed to the LP are computed from Uniswap V3 feeGrowthInside snapshots at open.
+  The owner sets the dex aggregator, fee factor, liquidation reward factor, loan term and treasury rate and
+  is trusted. Deployed on Ethereum mainnet first.
