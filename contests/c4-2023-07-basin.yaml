@@ -1,0 +1,41 @@
+# Code4rena -- Basin (Jul 2023). Past contest, public findings.
+# No scope.txt in the repo: the file list below is copied from the README "In Scope" table
+# (10 files, 1145 SLoC); its "Out of Scope" list is reflected in out_of_scope.
+id: c4-2023-07-basin
+platform: code4rena
+url: https://code4rena.com/audits/2023-07-basin
+repo: https://github.com/code-423n4/2023-07-basin.git
+commit: 73f7133b380ea027048f0b9aaa284b14f3ce43b4
+solc: "0.8.20"
+
+scope:
+  project_dir: .
+  files:
+    - src/functions/ConstantProduct2.sol
+    - src/functions/ProportionalLPToken2.sol
+    - src/pumps/MultiFlowPump.sol
+    - src/Aquifer.sol
+    - src/Well.sol
+    - src/libraries/LibBytes.sol
+    - src/libraries/LibBytes16.sol
+    - src/libraries/LibContractInfo.sol
+    - src/libraries/LibLastReserveBytes.sol
+    - src/libraries/LibWellConstructor.sol
+
+known_issues: []
+
+out_of_scope:
+  - functions/ConstantProduct.sol, functions/ProportionalLPToken.sol, libraries/ABDKMathQuad.sol, libraries/LibClone.sol, libraries/LibMath.sol, utils/
+  - The trustworthiness of a given Well's tokens, Well function and pumps is the user's responsibility (permissionless design)
+
+notes: >-
+  Basin is a composable AMM framework. A Well is a constant-function AMM holding n tokens' reserves, defined by
+  a Well function (here ConstantProduct2 for 2 tokens, with ProportionalLPToken2 for LP math) and optional
+  Pumps (on-chain oracles). Wells issue ERC20 LP tokens and support swapFrom/swapTo, add/remove liquidity
+  (incl. fee-on-transfer variants), shift (swap tokens already sent to the Well), sync and skim. Every
+  reserve-changing action must update the Pumps first so oracle values reflect the pre-change reserves.
+  MultiFlowPump stores a geometric EMA and a cumulative geometric SMA per reserve, capping reserve changes per
+  block (maxPercentIncrease/Decrease, BLOCK_TIME) to resist manipulation; reserves are packed into storage
+  with LibBytes / LibBytes16 / LibLastReserveBytes. Aquifer is a permissionless Well registry/factory that
+  bores Wells as immutable clones. Basin has no admin roles in scope. Wells are not required to be deployed by
+  the Aquifer; evaluating a Well's trustworthiness is left to users.

@@ -1,0 +1,32 @@
+# https://code4rena.com/reports/2023-07-basin (code-423n4/2023-07-basin-findings). Benchmark only.
+contest: c4-2023-07-basin
+findings:
+  - {id: H-01, severity: high, contract: Well, bug_class: oracle-manipulation, functions: [shift, sync],
+     title: "Pumps are not updated in shift() and sync(), allowing oracle manipulation"}
+  - {id: M-01, severity: medium, contract: LibBytes, bug_class: accounting, functions: [getBytes32FromBytes],
+     title: "Memory corruption in getBytes32FromBytes()"}
+  - {id: M-02, severity: medium, contract: LibLastReserveBytes, bug_class: accounting, functions: [storeLastReserves],
+     title: "Slot confusion corrupts reserve amounts in the pump"}
+  - {id: M-03, severity: medium, contract: LibLastReserveBytes, bug_class: accounting, functions: [storeLastReserves, readLastReserves],
+     title: "Bit-shifting errors corrupt reserve amounts in the pump"}
+  - {id: M-04, severity: medium, contract: Well, bug_class: dos, functions: [shift, sync, skim, swapFrom],
+     title: "Long term denial of service due to lack of fees in Well"}
+  - {id: M-05, severity: medium, contract: ConstantProduct2, bug_class: rounding-precision, functions: [calcReserve, calcLpTokenSupply],
+     title: "The constant product invariant can be broken"}
+  - {id: M-06, severity: medium, contract: ConstantProduct2, bug_class: rounding-precision, functions: [calcLpTokenSupply],
+     title: "Large precision error in sqrt calculation of LP"}
+  - {id: M-07, severity: medium, contract: Aquifer, bug_class: dos, functions: [boreWell],
+     title: "boreWell can be frontrun / DoS-d"}
+  - {id: M-08, severity: medium, contract: MultiFlowPump, bug_class: oracle-manipulation, functions: [update, _capReserve],
+     title: "Treating BLOCK_TIME as permanent causes oracle flaws when block times change"}
+  - {id: M-09, severity: medium, contract: Aquifer, bug_class: access-control, functions: [boreWell],
+     title: "Aquifer is vulnerable to Metamorphic Contract Attack"}
+  - {id: M-10, severity: medium, contract: Well, bug_class: external-integration,
+     functions: [swapFromFeeOnTransfer, addLiquidityFeeOnTransfer, removeLiquidity, _executeSwap],
+     title: "Transfer-out-exclusive fee-on-transfer tokens will run out of the Well"}
+  - {id: M-11, severity: medium, contract: Well, bug_class: oracle-manipulation, functions: [addLiquidity],
+     title: "addLiquidity sandwich attack for unbalanced deposits"}
+  - {id: M-12, severity: medium, contract: MultiFlowPump, bug_class: oracle-manipulation, functions: [_capReserve, update],
+     title: "Single hardcoded cap for multiple tokens in a pump"}
+  - {id: M-13, severity: medium, contract: MultiFlowPump, bug_class: other, functions: [update, Aquifer.constructor],
+     title: "Useless modifier and bad assumptions (BLOCK_TIME) in constructor"}
