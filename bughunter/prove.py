@@ -142,6 +142,11 @@ def verify(contest: Contest, workdir: Path, cid: str, test_src: str, patch: str 
         (poc_dir / name).write_text(text)
     res: dict = {"cid": cid}
     try:
+        if support:
+            # Helpers may deploy artifacts via vm.getCode/deployCode (e.g. a local Uniswap V3 built
+            # with another solc), which `forge test --match-path` alone does not compile.
+            subprocess.run(["forge", "build", "--offline"] + [f"{POC_DIR}/{n}" for n in support],
+                           cwd=project, capture_output=True, text=True, env=toolchain.env(), timeout=1800)
         ok, log = _forge_test(project, rel_test)
         res["log_original"] = log
         if "NO_POC_TEST_RAN" in log:
