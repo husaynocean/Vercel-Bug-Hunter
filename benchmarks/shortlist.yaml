@@ -14,7 +14,7 @@ contests:
   - {id: 2023-07-basin,              highs: 1,  sloc: 1145, status: done}       # H-01 found + proven (rated Medium)       # no scope.txt: use README table; skip fork-only integration test
   - {id: 2024-02-ai-arena,           highs: 8,  sloc: 1271, status: done}       # 8/8 Highs found + proven
   - {id: 2023-12-particle,           highs: 4,  sloc: 1299, status: done}       # 4/4 Highs found + proven (local Uniswap V3)       # Uniswap v3 LP math; check tests run without a fork
-  - {id: 2023-10-wildcat,            highs: 6,  sloc: 2332, status: todo}       # largest; run last
+  - {id: 2023-10-wildcat,            highs: 6,  sloc: 2332, status: done}       # 4/6 Highs found + proven       # largest; run last
 
 # Reserves if one turns out unusable (e.g. tests need a fork after all):
 reserves:

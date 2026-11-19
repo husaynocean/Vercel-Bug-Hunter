@@ -207,7 +207,47 @@ bughunter report contests/<id>.yaml                       # drafts for confirmed
 All PoCs were written by context-free subagents (about 320k tokens of plan
 usage).
 
-## Benchmark scoreboard (week 4, running)
+## Benchmark result (9 of 10 contests; Revolution blocked on GitHub access)
+
+**28 of 35 published Highs (80%) were found blind and proven by a Foundry test
+that passes on the audited code and fails once the fix is applied.**
+
+| contest | Highs found + proven |
+|---|---|
+| PoolTogether, Canto, Coinbase, Basin | 1/1 each |
+| Kelp | 2/3 |
+| DYAD | 6/10 |
+| AI Arena | 8/8 |
+| Particle | 4/4 |
+| Wildcat | 4/6 |
+
+- **Severity is the weak point:** only 16 of the 28 found Highs are drafted as
+  High. In a live contest the rest would pay as Mediums unless a human
+  re-rates them, so check severity by hand before submitting.
+- **Mediums:** 18 of 71 found and proven. Most misses are economic or
+  incentive issues, or need off-repo context.
+- **The 7 missed Highs:**
+  - Kelp H-01: Chainlink deviation arbitrage.
+  - DYAD H-02, H-07, H-10: liquidation economics (partial liquidation, the
+    exogenous-collateral check, self-liquidation).
+  - DYAD H-04: an unlicensed fake vault.
+  - Wildcat H-04: zero-length withdrawal batches.
+  - Wildcat H-05: blacklist escape via token transfer.
+  Most are cross-function or whole-protocol reasoning that a per-function
+  review sees only partially.
+- **False positives:** the proof step rejected 7 candidates as not real, and
+  the known-issue filter removed 4 already listed in bot reports. Drafts only
+  contain proven, non-known findings.
+- **Cost:** about 7.6M tokens of Claude plan usage across the 9 contests.
+  No API spend.
+
+Suggested next improvements, measured by re-running this benchmark:
+1. A per-contract pass for missing functions and cross-function invariants
+   (Wildcat H-03 almost slipped through).
+2. A liquidation and economics pass for lending protocols.
+3. Better severity calibration against how the platform actually judges.
+
+## Benchmark scoreboard (per contest)
 
 Blind review by context-free subagents, then a Foundry proof re-run by the
 pipeline. "Found" was checked by hand against the published finding (same
@@ -223,7 +263,8 @@ root cause), not just a location match.
 | Basin 2023-07 | v2 + judge | 1 | **1/1** (shift + sync) | 0/1 (Medium, review and judge) | 3/13 (M-01, M-02, M-07) | 0/2/7 | 0 | ~0.9M |
 | AI Arena 2024-02 | v2 + judge | 8 | **8/8** | 4/8 | 5/9 (M-02, M-03, M-05, M-06, M-07) | 4/10/4 | 0 | ~1.2M |
 | Particle 2023-12 | v2 + judge | 4 | **4/4** | 3/4 (judge raised H-04) | 2/15 (M-03, M-15) | 3/2/2 | 0 | ~0.9M |
-| **total so far** | | **29** | **24/29** | **15/24** (final, upgrade-only judge) | **15/60** | | | **~6.3M** |
+| Wildcat 2023-10 | v2 + judge | 6 | **4/6** (missed H-04, H-05) | 1/4 | 3/11 (M-05, M-06, M-10) | 2/4/3 | 1 | ~1.3M |
+| **total (9 contests)** | | **35** | **28/35 (80%)** | **16/28** (final, upgrade-only judge) | **18/71** | | | **~7.6M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
