@@ -85,3 +85,9 @@ def test_judge_can_raise_but_not_lower_severity():
     assert prove._max_sev("medium", "high") == "high"
     assert prove._max_sev("medium", None) is None
     assert prove._max_sev(None, "low") == "low"
+
+
+def test_support_files_exclude_other_pocs(tmp_path):
+    for n in ("c00.t.sol", "c12.t.sol", "BHSetup.sol", "Bytecode.sol"):
+        (tmp_path / n).write_text("//")
+    assert sorted(prove.support_files(tmp_path)) == ["BHSetup.sol", "Bytecode.sol"]

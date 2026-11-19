@@ -118,7 +118,18 @@ def _patch_files(patch: str) -> list[str]:
     return sorted({m.group(1) for m in re.finditer(r"^\+\+\+ b/(\S+)", patch, re.M)})
 
 
-def verify(contest: Contest, workdir: Path, cid: str, test_src: str, patch: str | None) -> dict:
+CID_TEST = re.compile(r"^c\d+\.t\.sol$")
+
+
+def support_files(test_dir: Path) -> dict[str, str]:
+    """Shared helpers next to the PoCs (e.g. a local Uniswap deployment), never other cids' tests."""
+    if not test_dir.is_dir():
+        return {}
+    return {p.name: p.read_text() for p in sorted(test_dir.glob("*.sol")) if not CID_TEST.match(p.name)}
+
+
+def verify(contest: Contest, workdir: Path, cid: str, test_src: str, patch: str | None,
+           support: dict[str, str] | None = None) -> dict:
     repo = workdir / contest.id / "repo"
     project = contest.project_root(repo)
     rel_test = f"{POC_DIR}/{cid}.t.sol"
@@ -127,6 +138,8 @@ def verify(contest: Contest, workdir: Path, cid: str, test_src: str, patch: str 
         shutil.rmtree(poc_dir)  # exactly one PoC compiled at a time
     poc_dir.mkdir(parents=True)
     (project / rel_test).write_text(test_src)
+    for name, text in (support or {}).items():
+        (poc_dir / name).write_text(text)
     res: dict = {"cid": cid}
     try:
         ok, log = _forge_test(project, rel_test)
@@ -195,7 +208,10 @@ def run(contest: Contest, workdir: Path, src: Path) -> tuple[Path, dict]:
             (out / "pocs" / f"{cid}.t.sol").write_text(test_src)
             if patch:
                 (out / "pocs" / f"{cid}.patch").write_text(patch)
-            v = verify(contest, workdir, cid, test_src, patch)
+            support = support_files(src / "project" / POC_DIR)
+            for name, text in support.items():
+                (out / "pocs" / f"{cid}.support.{name}").write_text(text)
+            v = verify(contest, workdir, cid, test_src, patch, support)
             (out / "logs" / f"{cid}.txt").write_text(
                 "== original ==\n" + v.pop("log_original", "") + "\n== with fix ==\n" + v.pop("log_fixed", ""))
             rec.update(v)
