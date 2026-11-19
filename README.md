@@ -222,7 +222,8 @@ root cause), not just a location match.
 | Coinbase 2024-03 | v2 | 1 | **1/1** (split into 2 candidates) | 0/1 (rated Medium) | 1/2 | 0/2/1 | 0 | ~0.4M |
 | Basin 2023-07 | v2 + judge | 1 | **1/1** (shift + sync) | 0/1 (Medium, review and judge) | 3/13 (M-01, M-02, M-07) | 0/2/7 | 0 | ~0.9M |
 | AI Arena 2024-02 | v2 + judge | 8 | **8/8** | 4/8 | 5/9 (M-02, M-03, M-05, M-06, M-07) | 4/10/4 | 0 | ~1.2M |
-| **total so far** | | **25** | **20/25** | **12/20** (final, upgrade-only judge) | **13/45** | | | **~5.4M** |
+| Particle 2023-12 | v2 + judge | 4 | **4/4** | 3/4 (judge raised H-04) | 2/15 (M-03, M-15) | 3/2/2 | 0 | ~0.9M |
+| **total so far** | | **29** | **24/29** | **15/24** (final, upgrade-only judge) | **15/60** | | | **~6.3M** |
 
 Notes:
 - Canto H-01 needs outside knowledge (cNOTE's exchange rate is scaled 1e18
@@ -281,6 +282,12 @@ Notes:
 - **Severity policy change:** the judge may now raise a rating but never lower
   it; drafts show both. Back-test over 7 contests: review alone 11/20 found
   Highs rated High, judge-as-authority 10/20, upgrade-only 12/20.
+- Particle: all 4 Highs found and proven even though the project's own tests
+  fork mainnet. PoC writers deployed the real Uniswap V3 core (solc 0.7.6)
+  locally at the hard-coded addresses, plus a 0.8 port of the position manager
+  (OZ 3.x was unavailable). The verifier now copies and pre-builds shared PoC
+  support files. The proof step rejected a "sandwich the LP's withdrawal"
+  candidate: the attacker loses money.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp
