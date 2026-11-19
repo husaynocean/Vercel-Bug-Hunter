@@ -1,0 +1,56 @@
+# Code4rena -- Wildcat Protocol (Oct 2023). Past contest, public findings.
+id: c4-2023-10-wildcat
+platform: code4rena
+url: https://code4rena.com/audits/2023-10-wildcat-protocol
+repo: https://github.com/code-423n4/2023-10-wildcat.git
+commit: 1f4422eb6ce844622a29cac6300472e3ab74705a
+solc: "0.8.20"
+
+scope:
+  project_dir: .
+  scope_file: scope.txt
+  files:
+    - src/WildcatMarketController.sol
+    - src/market/WildcatMarketBase.sol
+    - src/WildcatMarketControllerFactory.sol
+    - src/WildcatArchController.sol
+    - src/market/WildcatMarketWithdrawals.sol
+    - src/libraries/MathUtils.sol
+    - src/libraries/SafeCastLib.sol
+    - src/libraries/FeeMath.sol
+    - src/market/WildcatMarketConfig.sol
+    - src/libraries/StringQuery.sol
+    - src/market/WildcatMarket.sol
+    - src/libraries/MarketState.sol
+    - src/WildcatSanctionsSentinel.sol
+    - src/libraries/LibStoredInitCode.sol
+    - src/libraries/FIFOQueue.sol
+    - src/market/WildcatMarketToken.sol
+    - src/libraries/Errors.sol
+    - src/libraries/Withdrawal.sol
+    - src/ReentrancyGuard.sol
+    - src/WildcatSanctionsEscrow.sol
+    - src/libraries/BoolUtils.sol
+    - src/libraries/Chainalysis.sol
+
+known_issues:
+  - bot-report.md
+
+out_of_scope:
+  - Interfaces, test helpers, solady/solmate/OpenZeppelin, the Chainalysis sanctions oracle itself
+  - Counterparty default risk (no collateral by design); rebasing market tokens are intended
+
+notes: >-
+  Wildcat is an on-chain fixed-rate private credit protocol for sophisticated users. The archcontroller
+  registers allowed factories, controllers, markets and borrowers. Borrowers deploy markets through
+  controllers (deployed by WildcatMarketControllerFactory), which constrain market parameters to factory
+  ranges and manage the set of authorised lenders. Lenders deposit the market's asset and receive a rebasing
+  market token redeemable 1:1 for the asset; interest accrues as base APR + protocol fee (a share of base APR)
+  + penalty APR once the market has been delinquent (below its reserve ratio) beyond the grace period, tracked
+  by a grace tracker. Borrowers may borrow only down to the reserve ratio, can adjust APR (lowering it
+  temporarily raises the reserve ratio to 90%) and capacity via the controller, and can close the market.
+  Lenders with WithdrawOnly or DepositAndWithdraw roles queue withdrawals into time-boxed batches; unpaid
+  batch amounts expire into a FIFO queue paid first from any new reserves. Lenders flagged by the Chainalysis
+  sanctions oracle are blocked and their balances moved to an escrow (WildcatSanctionsSentinel /
+  WildcatSanctionsEscrow) from which they can recover funds if unflagged. No proxies; the archcontroller
+  owner is trusted. Anything in the bot report is a known issue.
