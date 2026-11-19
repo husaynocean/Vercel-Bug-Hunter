@@ -86,7 +86,8 @@ def export(contest: Contest, workdir: Path, dest: Path, cids: list[str] | None =
     (dest / "candidates").mkdir(parents=True)
     (dest / "answers").mkdir()
     shutil.copytree(project, dest / "project", symlinks=True,
-                    ignore=shutil.ignore_patterns(".git", "out", "cache", "broadcast"))
+                    ignore=shutil.ignore_patterns(".git", "out", "cache", "broadcast",
+                                                  "discord-export"))  # contest chat may discuss findings
     (dest / "project" / POC_DIR).mkdir(parents=True, exist_ok=True)
     for c in cands:
         brief = {k: c[k] for k in ("cid", "title", "category", "severity", "functions", "root_cause",

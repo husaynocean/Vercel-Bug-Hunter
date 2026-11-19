@@ -288,6 +288,12 @@ Notes:
   (OZ 3.x was unavailable). The verifier now copies and pre-builds shared PoC
   support files. The proof step rejected a "sandwich the LP's withdrawal"
   candidate: the attacker loses money.
+- Hygiene fix (proof packets): for contests whose project is the repo root,
+  PoC packets copied the whole repo, including `discord-export` (contest chat,
+  which may discuss findings). This affected PoC writers on 7 contests, never
+  reviewers (review packets hold only in-scope source). Proofs are verified
+  mechanically, so it cannot make a fake bug pass, but it is excluded from now
+  on.
 - Duplicates: `bughunter prove --duplicate c01:c00` keeps a confirmed
   duplicate out of the drafts (listed in `report/duplicates.md`).
 - Known-issue filter v2: matching on lines alone wrongly hid two awarded Kelp
