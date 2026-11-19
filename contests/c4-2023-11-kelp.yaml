@@ -1,0 +1,37 @@
+# Code4rena -- Kelp DAO rsETH (Nov 2023). Past contest, public findings.
+id: c4-2023-11-kelp
+platform: code4rena
+url: https://code4rena.com/audits/2023-11-kelp-dao-rseth
+repo: https://github.com/code-423n4/2023-11-kelp.git
+commit: cebf9a9fd1355c2d5d560268745c3056c21de78f
+solc: "0.8.21"
+
+scope:
+  project_dir: .
+  scope_file: scope.txt
+  files:
+    - src/LRTConfig.sol
+    - src/LRTDepositPool.sol
+    - src/NodeDelegator.sol
+    - src/LRTOracle.sol
+    - src/RSETH.sol
+    - src/oracles/ChainlinkPriceOracle.sol
+    - src/utils/LRTConfigRoleChecker.sol
+    - src/utils/UtilLib.sol
+    - src/utils/LRTConstants.sol
+
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - EigenLayer (StrategyManager, strategies), Chainlink feeds, the LSTs themselves (stETH, rETH, cbETH)
+  - OpenZeppelin upgradeable dependencies
+
+notes: >-
+  Kelp liquid restaking: users deposit supported LSTs (stETH, rETH, cbETH) into LRTDepositPool and receive
+  rsETH minted according to LRTOracle prices (Chainlink LST/ETH feeds via ChainlinkPriceOracle). Funds move
+  from the pool to NodeDelegator contracts, which deposit them into the asset's EigenLayer strategy. LRTConfig
+  stores supported assets, deposit limits, strategies and contract addresses. All core contracts are
+  upgradeable. Roles (admin, manager) are trusted. Known issue (not eligible): EigenLayer can pause deposits,
+  which is why NodeDelegator holds assets before depositing into EigenLayer.

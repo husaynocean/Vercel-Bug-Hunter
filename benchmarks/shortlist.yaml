@@ -1,0 +1,26 @@
+# Week-4 benchmark set: 10 past Code4rena contests with public findings.
+# Selection rules: Foundry project, official scope list, >= 1 published High,
+# no fork-dependent tests in the repo (no RPC URL needed), modest size.
+# Highs / SLoC are from the published report and the contest README
+# (checked against code-423n4/<id> and <id>-findings, Nov 2026).
+# Order = suggested run order, smallest first.
+contests:
+  - {id: 2024-03-pooltogether,       highs: 1,  sloc: 648,  status: done}       # H-01 confirmed by PoC
+  - {id: 2023-11-canto,              highs: 1,  sloc: 316,  status: done}       # 2 parts (asD, 1155tech); H-01 confirmed by PoC
+  - {id: 2023-11-kelp,               highs: 3,  sloc: 504,  status: done}       # H-02, H-03 found + proven; H-01 missed
+  - {id: 2024-04-dyad,               highs: 10, sloc: ~570, status: done}       # 6/10 Highs found + proven       # scope incl. deploy script; Highs overlap heavily
+  - {id: 2024-03-coinbase,           highs: 1,  sloc: 786,  status: done}       # H-01 found + proven (rated Medium)
+  - {id: 2023-12-revolutionprotocol, highs: 4,  sloc: 1000, status: blocked}    # pnpm deps need GitHub repo access (forge-std, ds-test); configs ready       # monorepo (packages/*)
+  - {id: 2023-07-basin,              highs: 1,  sloc: 1145, status: done}       # H-01 found + proven (rated Medium)       # no scope.txt: use README table; skip fork-only integration test
+  - {id: 2024-02-ai-arena,           highs: 8,  sloc: 1271, status: done}       # 8/8 Highs found + proven
+  - {id: 2023-12-particle,           highs: 4,  sloc: 1299, status: done}       # 4/4 Highs found + proven (local Uniswap V3)       # Uniswap v3 LP math; check tests run without a fork
+  - {id: 2023-10-wildcat,            highs: 6,  sloc: 2332, status: done}       # 4/6 Highs found + proven       # largest; run last
+
+# Reserves if one turns out unusable (e.g. tests need a fork after all):
+reserves:
+  - {id: 2024-04-renzo, highs: 8, note: "~4.2k raw lines in scope, Hardhat + Foundry"}
+  - {id: 2024-04-panoptic, highs: 2, note: "heavy math, some fork refs"}
+
+# Rejected: Hardhat-only (2024-01-curves, 2023-10-nextgen, 2023-06-lybra, 2023-09-asymmetry,
+# 2023-12-autonolas), too large (2023-05-maia ~9.9k SLoC, 2023-07-pooltogether 3.3k),
+# fork-heavy (2023-08-livepeer), no Highs (2023-10-ethena).

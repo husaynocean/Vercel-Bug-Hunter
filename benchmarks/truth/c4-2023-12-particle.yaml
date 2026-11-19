@@ -1,0 +1,43 @@
+# https://code4rena.com/reports/2023-12-particle (code-423n4/2023-12-particle-findings). Benchmark only.
+contest: c4-2023-12-particle
+findings:
+  - {id: H-01, severity: high, contract: ParticlePositionManager, bug_class: external-integration,
+     functions: [_closePosition, liquidatePosition, closePosition],
+     title: "Borrower in a token blacklist can stop the LP from ever retrieving liquidity"}
+  - {id: H-02, severity: high, contract: ParticlePositionManager, bug_class: accounting, functions: [openPosition, Base.getFeeGrowthInside],
+     title: "openPosition uses stale feeGrowthInside last values"}
+  - {id: H-03, severity: high, contract: ParticlePositionManager, bug_class: access-control, functions: [liquidatePosition, _closePosition, Base.swap],
+     title: "Liquidator can craft swap data to steal the borrower's profit"}
+  - {id: H-04, severity: high, contract: Base, bug_class: rounding-precision, functions: [getFeeGrowthInside],
+     title: "Underflow when calculating Uniswap V3 fee growth makes operations revert"}
+  - {id: M-01, severity: medium, contract: ParticlePositionManager, bug_class: dos, functions: [liquidatePosition, _closePosition],
+     title: "Zero amount token transfers may DoS liquidations"}
+  - {id: M-02, severity: medium, contract: LiquidityPosition, bug_class: oracle-manipulation,
+     functions: [mint, increaseLiquidity, decreaseLiquidity],
+     title: "Dangerous use of deadline parameter"}
+  - {id: M-03, severity: medium, contract: ParticlePositionManager, bug_class: accounting, functions: [_closePosition],
+     title: "Increase liquidity in close position may not cover original borrowed liquidity"}
+  - {id: M-04, severity: medium, contract: ParticlePositionManager, bug_class: accounting, functions: [addPremium],
+     title: "Add premium doesn't collect fees"}
+  - {id: M-05, severity: medium, contract: ParticlePositionManager, bug_class: access-control, functions: [updateLoanTerm, liquidatePosition],
+     title: "Modifying the loan term setting can default existing loans"}
+  - {id: M-06, severity: medium, contract: ParticlePositionManager, bug_class: accounting, functions: [liquidatePosition],
+     title: "Liquidation condition should not factor the liquidation reward into the premiums"}
+  - {id: M-07, severity: medium, contract: ParticlePositionManager, bug_class: rounding-precision, functions: [openPosition],
+     title: "Impossible to open a position with a large marginTo"}
+  - {id: M-08, severity: medium, contract: ParticlePositionManager, bug_class: external-integration, functions: [collectLiquidity, LiquidityPosition.collectLiquidity],
+     title: "collectLiquidity lacks a recipient, token1 stuck if LP is blacklisted for token0"}
+  - {id: M-09, severity: medium, contract: ParticlePositionManager, bug_class: dos, functions: [reclaimLiquidity, openPosition],
+     title: "Borrowers can close and reopen before expiry so LPs cannot retrieve liquidity"}
+  - {id: M-10, severity: medium, contract: ParticlePositionManager, bug_class: dos, functions: [addPremium, reclaimLiquidity],
+     title: "addPremium after reclaimLiquidity invalidates renewalCutoffTime"}
+  - {id: M-11, severity: medium, contract: ParticlePositionManager, bug_class: accounting, functions: [openPosition],
+     title: "openPosition lacks minimum token premium portion"}
+  - {id: M-12, severity: medium, contract: ParticlePositionManager, bug_class: access-control, functions: [openPosition],
+     title: "Position can be opened when the manager does not hold the Uniswap V3 NFT"}
+  - {id: M-13, severity: medium, contract: ParticlePositionManager, bug_class: oracle-manipulation, functions: [openPosition, Base.getOwedFee],
+     title: "Malicious lender can manipulate the fee to force the borrower to pay a high premium"}
+  - {id: M-14, severity: medium, contract: ParticlePositionManager, bug_class: accounting, functions: [openPosition],
+     title: "Excess tokens not accounted in the premium portion get stuck"}
+  - {id: M-15, severity: medium, contract: ParticlePositionManager, bug_class: oracle-manipulation, functions: [increaseLiquidity, decreaseLiquidity],
+     title: "increaseLiquidity and decreaseLiquidity lack slippage protection"}

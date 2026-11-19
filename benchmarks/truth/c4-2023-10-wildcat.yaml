@@ -1,0 +1,42 @@
+# https://code4rena.com/reports/2023-10-wildcat (code-423n4/2023-10-wildcat-findings). Benchmark only.
+contest: c4-2023-10-wildcat
+findings:
+  - {id: H-01, severity: high, contract: WildcatMarket, bug_class: accounting, functions: [closeMarket],
+     title: "Borrowers escape half the penalty fees by closing the market; withdrawing lenders cover the rest"}
+  - {id: H-02, severity: high, contract: WildcatMarketControllerFactory, bug_class: access-control,
+     functions: [deployController, deployControllerAndMarket, WildcatMarketController.deployMarket],
+     title: "codehash check in factories does not account for non-empty addresses"}
+  - {id: H-03, severity: high, contract: WildcatMarketConfig, bug_class: access-control,
+     functions: [setMaxTotalSupply, WildcatMarket.closeMarket],
+     title: "Borrower has no way to update maxTotalSupply or close the market (controller lacks the calls)"}
+  - {id: H-04, severity: high, contract: WildcatMarketWithdrawals, bug_class: accounting,
+     functions: [queueWithdrawal, executeWithdrawal],
+     title: "withdrawalBatchDuration of zero lets lenders withdraw more than allocated to a batch"}
+  - {id: H-05, severity: high, contract: WildcatMarketToken, bug_class: access-control,
+     functions: [_transfer, transfer, WildcatMarketConfig.updateAccountAuthorization],
+     title: "Blacklisted lenders escape by moving market tokens to another account and gaining WithdrawOnly"}
+  - {id: H-06, severity: high, contract: WildcatMarketBase, bug_class: access-control,
+     functions: [_blockAccount, WildcatSanctionsSentinel.createEscrow],
+     title: "Borrower can drain all funds of a sanctioned lender (escrow args swapped)"}
+  - {id: M-01, severity: medium, contract: WildcatMarketBase, bug_class: accounting, functions: [_processExpiredWithdrawalBatch, _getUpdatedState],
+     title: "Expired withdrawal batches are often underpaid their owed interest"}
+  - {id: M-02, severity: medium, contract: WildcatMarketBase, bug_class: accounting, functions: [_blockAccount],
+     title: "Blocked accounts keep earning interest"}
+  - {id: M-03, severity: medium, contract: WildcatMarket, bug_class: external-integration, functions: [deposit, depositUpTo],
+     title: "Markets are incompatible with rebasing tokens"}
+  - {id: M-04, severity: medium, contract: WildcatMarketBase, bug_class: rounding-precision, functions: [_applyWithdrawalBatchPayment],
+     title: "_applyWithdrawalBatchPayment should not round up"}
+  - {id: M-05, severity: medium, contract: WildcatMarket, bug_class: accounting, functions: [collectFees],
+     title: "collectFees updates delinquency wrongly (_writeState before transfer)"}
+  - {id: M-06, severity: medium, contract: LibStoredInitCode, bug_class: external-integration, functions: [create2WithStoredInitCode],
+     title: "create2WithStoredInitCode does not revert if deployment failed"}
+  - {id: M-07, severity: medium, contract: WildcatArchController, bug_class: access-control, functions: [removeMarket],
+     title: "Removing markets from the archcontroller gives lenders immunity from sanctions"}
+  - {id: M-08, severity: medium, contract: WildcatMarketController, bug_class: accounting, functions: [setAnnualInterestBips],
+     title: "setAnnualInterestBips can be abused to keep reserve ratio at 90%"}
+  - {id: M-09, severity: medium, contract: WildcatMarketWithdrawals, bug_class: accounting, functions: [executeWithdrawal, queueWithdrawal],
+     title: "Pending withdrawal batch debt cannot be paid until the cycle ends"}
+  - {id: M-10, severity: medium, contract: WildcatMarketController, bug_class: access-control, functions: [setAnnualInterestBips],
+     title: "setAnnualInterestBips allows values outside the factory range"}
+  - {id: M-11, severity: medium, contract: WildcatMarket, bug_class: external-integration, functions: [deposit, borrow, collectFees],
+     title: "Return values of transfer/transferFrom not checked"}

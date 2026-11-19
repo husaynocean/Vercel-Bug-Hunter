@@ -1,0 +1,42 @@
+# Code4rena -- DYAD (Apr 2024). Past contest, public findings.
+id: c4-2024-04-dyad
+platform: code4rena
+url: https://code4rena.com/audits/2024-04-dyad
+repo: https://github.com/code-423n4/2024-04-dyad.git
+commit: 0b3d80b38e8e98f8d482347eb7c0891b06b58b08
+solc: "0.8.17"
+
+scope:
+  project_dir: .
+  scope_file: scope.txt
+  files:
+    - src/core/VaultManagerV2.sol
+    - src/core/Vault.kerosine.bounded.sol
+    - src/core/Vault.kerosine.sol
+    - src/core/Vault.kerosine.unbounded.sol
+    - src/core/KerosineManager.sol
+    - script/deploy/Deploy.V2.s.sol
+    - src/staking/KerosineDenominator.sol
+
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - Everything in out_of_scope.txt, incl. DNft, Dyad, Licenser, VaultManager (v1), the standard collateral Vault (wETH/wstETH, has oracle()), Kerosine token, Staking, Payments, params
+  - Token behaviours: only weth and wsteth (and Kerosene) are in scope; issues only count if those tokens actually behave that way
+
+notes: >-
+  DYAD is a stablecoin on Ethereum. A dNFT owner deposits collateral into licensed vaults (wETH, wstETH;
+  exogenous collateral with Chainlink oracles) and Kerosene vaults, then mints DYAD against it.
+  VaultManagerV2 replaces VaultManager to add flash-loan protection (a deposit blocks withdrawals in the
+  same block), because the Kerosene price is deterministic: roughly (TVL - DYAD supply) / Kerosene
+  denominator (UnboundedKerosineVault.assetPrice; BoundedKerosineVault caps at 2x). Kerosene can count
+  toward the collateral ratio but DYAD minting must be backed by enough non-Kerosene collateral (min CR
+  150%). Positions below the CR can be liquidated by another dNFT holder, who burns the DYAD debt and
+  receives collateral plus a bonus. The migration (deploying V2, its Kerosene vaults and licensing) is
+  described in script/deploy/Deploy.V2.s.sol, which is in scope; the only post-deploy multisig action is
+  licensing the new VaultManager. Main invariant: TVL > DYAD total supply. Focus areas: Kerosene price
+  manipulation, flash-loan attacks. Trusted role: DYAD multisig (licenses vault managers and vaults,
+  sets the Kerosene denominator, adds vaults to KerosineManager). Known issues (not eligible): the
+  multisig controls most of the protocol; unlicensing a vault can cause issues.

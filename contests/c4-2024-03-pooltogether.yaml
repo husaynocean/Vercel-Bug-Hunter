@@ -1,0 +1,35 @@
+# Code4rena -- PoolTogether PrizeVault (March 2024). Past contest, public findings.
+id: c4-2024-03-pooltogether
+platform: code4rena
+url: https://code4rena.com/audits/2024-03-pooltogether
+repo: https://github.com/code-423n4/2024-03-pooltogether.git
+commit: 2204d9d4187cd366425f22a78b6b6d758b9411f5
+solc: "0.8.24"
+
+# Copied verbatim from the contest README "Scope" table / scope.txt.
+# The pipeline refuses to run if these disagree with scope_file.
+scope:
+  project_dir: pt-v5-vault
+  scope_file: scope.txt
+  files:
+    - pt-v5-vault/src/PrizeVault.sol
+    - pt-v5-vault/src/PrizeVaultFactory.sol
+    - pt-v5-vault/src/TwabERC20.sol
+    - pt-v5-vault/src/abstract/Claimable.sol
+    - pt-v5-vault/src/abstract/HookManager.sol
+    - pt-v5-vault/src/interfaces/IVaultHooks.sol
+
+# Automated reports published before the contest: their issues are "known"
+# and not paid, so confirmed findings touching those lines are flagged.
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - PrizePool, TwabController, LiquidationPair, Claimer (external PoolTogether deps)
+  - fee-on-transfer assets; yield vaults with fees or that lose assets
+
+notes: >-
+  Trusted role: vault owner (liquidation strategy, claimer). DoS concern:
+  denying yield accrual for >= 1 day. Focus: ERC4626 compliance, yield-vault
+  integration.

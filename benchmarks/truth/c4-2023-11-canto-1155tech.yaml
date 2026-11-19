@@ -1,0 +1,7 @@
+# https://code4rena.com/reports/2023-11-canto (code-423n4/2023-11-canto-findings). Benchmark only.
+contest: c4-2023-11-canto-1155tech
+findings:
+  - {id: M-01, severity: medium, contract: Market, functions: [buy, sell, mintNFT, burnNFT], bug_class: oracle-manipulation,
+     title: "No slippage protection for Market functions"}
+  - {id: M-02, severity: medium, contract: Market, functions: [buy], bug_class: accounting,
+     title: "Users will lose rewards when buying new tokens if they already own some tokens"}

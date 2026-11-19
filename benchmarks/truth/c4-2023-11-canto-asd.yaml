@@ -1,0 +1,10 @@
+# https://code4rena.com/reports/2023-11-canto (code-423n4/2023-11-canto-findings). Benchmark only.
+contest: c4-2023-11-canto-asd
+findings:
+  - id: H-01
+    severity: high
+    title: Owner cannot withdraw all interest due to wrong calculation of accrued interest in WithdrawCarry
+    url: https://github.com/code-423n4/2023-11-canto-findings/issues/181
+    contract: asD
+    functions: [withdrawCarry]
+    bug_class: rounding-precision   # wrong exchange-rate scaling (1e28 vs cNOTE's 1e18 on Canto)

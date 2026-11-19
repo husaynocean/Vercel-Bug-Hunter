@@ -1,0 +1,33 @@
+# Published findings: https://code4rena.com/reports/2024-03-pooltogether
+# (code-423n4/2024-03-pooltogether-findings/report.md). Benchmark-only:
+# never fed to the scan or LLM review.
+contest: c4-2024-03-pooltogether
+findings:
+  - id: H-01
+    severity: high
+    title: >-
+      Any fee claim lesser than the total yieldFeeBalance as unit of shares is
+      lost and locked in the PrizeVault contract
+    url: https://github.com/code-423n4/2024-03-pooltogether-findings/issues/59
+    contract: PrizeVault
+    functions: [claimYieldFeeShares]
+    bug_class: accounting
+
+  # Mediums (from the published report's Medium section). Used to measure how
+  # many review candidates are real bugs; the headline metric stays High recall.
+  - {id: M-01, severity: medium, contract: Claimable, functions: [claimPrize], bug_class: external-integration,
+     title: "The winner can steal claimer fees, and force him to pay for the gas"}
+  - {id: M-02, severity: medium, contract: PrizeVault, functions: [_maxYieldVaultWithdraw], bug_class: standards-compliance,
+     title: "_maxYieldVaultWithdraw() uses yieldVault.convertToAssets()"}
+  - {id: M-03, severity: medium, contract: PrizeVault, functions: [maxDeposit], bug_class: standards-compliance,
+     title: "maxDeposit() uses yieldVault.maxDeposit() but _depositAndMint() uses yieldVault.mint()"}
+  - {id: M-04, severity: medium, contract: PrizeVault, functions: [withdraw, redeem], bug_class: external-integration,
+     title: "Lack of slippage protection in withdraw/redeem"}
+  - {id: M-05, severity: medium, contract: PrizeVault, functions: [liquidatableBalanceOf], bug_class: accounting,
+     title: "yieldFeeBalance wouldn't be claimed after calling transferTokensOut()"}
+  - {id: M-06, severity: medium, contract: PrizeVault, functions: [_withdraw], bug_class: external-integration,
+     title: "Funds locked due to missing transfer check"}
+  - {id: M-07, severity: medium, contract: PrizeVault, functions: [maxDeposit], bug_class: accounting,
+     title: "PrizeVault.maxDeposit() doesn't take into account produced fees"}
+  - {id: M-08, severity: medium, contract: PrizeVault, functions: [depositWithPermit], bug_class: external-integration,
+     title: "Permit doesn't work with DAI"}

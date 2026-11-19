@@ -1,0 +1,42 @@
+# Code4rena -- Canto asD + 1155tech (Nov 2023). Two Foundry projects in one contest,
+# so it is split into two parts (one per project) under one benchmark group.
+id: c4-2023-11-canto-asd
+group: c4-2023-11-canto
+platform: code4rena
+url: https://code4rena.com/audits/2023-11-canto
+repo: https://github.com/code-423n4/2023-11-canto.git
+commit: 0b2d9d020251b0d9aad3de24824ae44b3a734d93
+solc: "0.8.19"
+
+scope:
+  project_dir: asD
+  scope_file: scope.txt
+  files:
+    - asD/src/asD.sol
+    - asD/src/asDFactory.sol
+  sibling_files:   # the other part of this contest; the union must equal scope.txt
+    - 1155tech-contracts/src/Market.sol
+    - 1155tech-contracts/src/bonding_curve/LinearBondingCurve.sol
+
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - Canto Lending Market / cNOTE / NOTE / Turnstile (external, behave as deployed on Canto)
+  - fee-on-transfer, ERC777 and other non-standard tokens with Market
+
+notes: >-
+  Deployed on the Canto chain. asD is a stablecoin always backed 1:1 by NOTE; minted NOTE is deposited
+  into the Canto Lending Market (a Compound v2 fork) as cNOTE, burning redeems NOTE back. The asD creator
+  (owner) may withdraw only the accrued interest ("carry") via withdrawCarry and must not be able to take
+  more. 1155tech Market lets anyone create shares priced by a whitelisted bonding curve (only
+  LinearBondingCurve today); buy/sell fees are split between platform, share creator and token holders;
+  holders auto-claim rewards on buy/sell; tokens can be wrapped into ERC1155 NFTs for a fee. Market is used
+  with asD or normal ERC20s only (no fee-on-transfer/ERC777). Trusted roles: asD creator (may only claim
+  interest), Market owner (whitelists bonding curves, share-creation whitelist). ERCs: asD should comply with
+  ERC20, Market with ERC1155. Invariants: 1 asD must always be redeemable for 1 NOTE; it must always be
+  possible to sell all outstanding share tokens for the tokens held by the contract. Explicit design
+  decisions (not bugs): a creator cannot buy their own shares directly (circumventable by design); NFT
+  mint/burn fees depend on current supply. Useful background: Canto NOTE, Canto Lending Market, Compound
+  v2 cToken docs.

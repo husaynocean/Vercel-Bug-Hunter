@@ -1,0 +1,42 @@
+# Code4rena -- AI Arena (Feb 2024). Past contest, public findings.
+id: c4-2024-02-ai-arena
+platform: code4rena
+url: https://code4rena.com/audits/2024-02-ai-arena
+repo: https://github.com/code-423n4/2024-02-ai-arena.git
+commit: b05b54a9eb5b0964bde9825f75305caa2d943155
+solc: "0.8.13"
+
+scope:
+  project_dir: .
+  scope_file: scope.txt
+  files:
+    - src/AiArenaHelper.sol
+    - src/FighterFarm.sol
+    - src/GameItems.sol
+    - src/MergingPool.sol
+    - src/Neuron.sol
+    - src/RankedBattle.sol
+    - src/StakeAtRisk.sol
+    - src/VoltageManager.sol
+
+known_issues:
+  - bot-report.md
+  - 4naly3er-report.md
+
+out_of_scope:
+  - AAMintPass.sol, FighterOps.sol, Verification.sol and OpenZeppelin
+  - The off-chain game server (trusted to call updateBattleRecord with correct results) and admin/owner roles
+
+notes: >-
+  AI Arena is a PvP fighting game with AI-trained fighters. FighterFarm is the ERC721 for fighters: minted via
+  claimFighters (server-signed), redeemMintPass (burns AAMintPass), or mintFromMergingPool; attributes come from
+  a DNA-derived generation in AiArenaHelper; fighters can be re-rolled up to maxRerollsAllowed per fighter
+  type. A fighter that is staked (locked) must not be transferable, and a wallet may hold at most
+  MAX_FIGHTERS_ALLOWED. GameItems is an ERC1155 of in-game items; some items are non-transferable and minting
+  is limited by a daily allowance. Neuron (NRN) is the ERC20 with minter/staker/spender roles. RankedBattle:
+  players stake NRN on a fighter; the trusted game server reports battle results (updateBattleRecord) that
+  consume voltage (VoltageManager), add/remove points (stakingFactor x eloFactor), or move part of the stake to
+  StakeAtRisk on a loss with zero points; stake at risk is reclaimed on later wins. Each round a fixed NRN
+  amount is distributed pro rata to points (claimNRN). Players can divert points to MergingPool, which
+  periodically raffles new fighters (claimRewards). The asymmetry of point gains/losses and NRN won/lost is
+  intentional design. Owner/admin and the game server are trusted.

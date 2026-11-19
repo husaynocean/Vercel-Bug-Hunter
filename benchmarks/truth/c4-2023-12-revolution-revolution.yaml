@@ -1,0 +1,40 @@
+# https://code4rena.com/reports/2023-12-revolutionprotocol (code-423n4/2023-12-revolutionprotocol-findings). Benchmark only.
+contest: c4-2023-12-revolution-revolution
+findings:
+  - {id: H-01, severity: high, contract: ERC20TokenEmitter, bug_class: accounting, functions: [buyToken],
+     title: "Incorrect amounts of ETH transferred to the DAO treasury in buyToken, value leak in every tx"}
+  - {id: H-02, severity: high, contract: CultureIndex, bug_class: accounting, functions: [createPiece, _calculateVoteWeight],
+     title: "totalVotesSupply / quorumVotes include the inaccessible votes of the NFT being auctioned"}
+  - {id: H-03, severity: high, contract: VerbsToken, bug_class: external-integration, functions: [tokenURI, CultureIndex.createPiece],
+     title: "VerbsToken.tokenURI is vulnerable to JSON injection"}
+  - {id: H-04, severity: high, contract: ERC721CheckpointableUpgradeable, bug_class: access-control,
+     functions: [_moveDelegateVotes, delegates, VerbsToken.transferFrom],
+     title: "Malicious delegatees can block delegators from redelegating and sending NFTs (root cause in out-of-scope base)"}
+  - {id: M-01, severity: medium, contract: AuctionHouse, bug_class: accounting, functions: [_settleAuction, createBid],
+     title: "Bidder can use donations to get VerbsToken from an auction that already ended"}
+  - {id: M-02, severity: medium, contract: VerbsToken, bug_class: standards-compliance, functions: [tokenURI],
+     title: "Violation of ERC-721 standard in tokenURI"}
+  - {id: M-03, severity: medium, contract: CultureIndex, bug_class: dos, functions: [dropTopVotedPiece],
+     title: "Manipulate topVotedPiece to DoS CultureIndex and AuctionHouse"}
+  - {id: M-04, severity: medium, contract: CultureIndex, bug_class: accounting, functions: [createPiece],
+     title: "The quorumVotes can be bypassed"}
+  - {id: M-05, severity: medium, contract: ERC20TokenEmitter, bug_class: oracle-manipulation, functions: [buyToken],
+     title: "buyToken has no slippage check"}
+  - {id: M-06, severity: medium, contract: VRGDAC, bug_class: rounding-precision, functions: [yToX, ERC20TokenEmitter.buyTokenQuote],
+     title: "ERC20TokenEmitter will not work after a certain period of time"}
+  - {id: M-07, severity: medium, contract: MaxHeap, bug_class: accounting, functions: [extractMax],
+     title: "positionMapping for last element not updated when extracting max"}
+  - {id: M-08, severity: medium, contract: MaxHeap, bug_class: accounting, functions: [extractMax, maxHeapify],
+     title: "Already extracted tokenId may be extracted again"}
+  - {id: M-09, severity: medium, contract: AuctionHouse, bug_class: dos, functions: [_createAuction],
+     title: "Anyone can pause AuctionHouse in _createAuction"}
+  - {id: M-10, severity: medium, contract: ERC20TokenEmitter, bug_class: accounting, functions: [buyToken],
+     title: "buyToken mints more tokens to users than it should"}
+  - {id: M-11, severity: medium, contract: AuctionHouse, bug_class: dos, functions: [_createAuction, _settleAuction, CultureIndex.createPiece],
+     title: "Unlimited art piece size can block AuctionHouse from creating and settling auctions"}
+  - {id: M-12, severity: medium, contract: AuctionHouse, bug_class: dos, functions: [_settleAuction, setEntropyRateBps],
+     title: "EntropyRateBps set too high leads to DoS from an invalid ETH amount"}
+  - {id: M-13, severity: medium, contract: AuctionHouse, bug_class: dos, functions: [_settleAuction],
+     title: "DoS of AuctionHouse via malicious creators"}
+  - {id: M-14, severity: medium, contract: CultureIndex, bug_class: standards-compliance, functions: [_verifyVoteSignature],
+     title: "encodedData of hashStruct not computed correctly for EIP712 signatures"}
