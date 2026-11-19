@@ -60,4 +60,22 @@ $500 up to 500 nSLOC
 $1,000 up to 1,500
 $2,000 up to 3,000
 
-DMs open.
+DMs open: @xyz_husayn
+
+---
+
+# Offer tweet (post separately, attach x-offer-1.png to x-offer-4.png)
+
+Launching a Solidity protocol?
+
+I find the bugs before your auditors do, and every finding comes with a Foundry test that proves it.
+
+No proof, no report.
+
+From $500. Fixed quote in 24h.
+
+DM me 👇
+
+## Reply to your own offer tweet (only after you share the page publicly)
+
+Full offer + a sample finding: <paste the shared artifact link here>
