@@ -5,7 +5,7 @@ I gave an AI 9 real smart-contract audit contests.
 
 Then I checked if it was cheating.
 
-On the High-severity bugs it could NOT recite from memory, it still found 73%, and proved every one with a test that breaks the code.
+On the High-severity bugs it could NOT recite from memory, it still found 73%, and proved every one with a Foundry test.
 
 How 🧵
 
@@ -21,7 +21,7 @@ On the other 22, it found and proved 16.
 ## 3/
 The other problem with AI bug finders: false alarms.
 
-So mine has one rule: no failing test, no report.
+So mine has one rule: no proof test, no report.
 
 Every bug gets a Foundry test that passes on the buggy code and fails once the fix is in. 7 false alarms died that way.
 
@@ -30,7 +30,7 @@ The pipeline:
 1. Load only the code in scope
 2. Scan with Slither + Semgrep
 3. AI reviews every function against a bug checklist
-4. Write a test that breaks the code
+4. Write a test that proves the bug
 5. Report only what the test proves
 
 ## 5/
@@ -63,7 +63,7 @@ So a human checks every finding.
 ## 8/ (the offer)
 Shipping a Solidity protocol?
 
-I'm doing pre-audit scans: proven bugs, a failing test and a fix for each, before your audit starts.
+I'm doing pre-audit scans: proven bugs, each with a proof test and a fix, before your audit starts.
 
 $500 up to 500 nSLOC
 $1,000 up to 1,500
