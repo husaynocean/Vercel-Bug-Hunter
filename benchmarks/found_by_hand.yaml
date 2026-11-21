@@ -1,0 +1,14 @@
+# High findings counted as FOUND in the benchmark: proven by a PoC AND checked by
+# hand to have the same root cause as the published finding (not just the same
+# location). Source: README "Benchmark scoreboard" / "Benchmark result" (28/35).
+# `bughunter cleanbench` uses these instead of location matches when present.
+c4-2024-03-pooltogether: [H-01]
+c4-2023-11-canto-asd: [H-01]
+c4-2023-11-canto-1155tech: []
+c4-2023-11-kelp: [H-02, H-03]                                   # missed H-01
+c4-2024-04-dyad: [H-01, H-03, H-05, H-06, H-08, H-09]           # missed H-02, H-04, H-07, H-10
+c4-2024-03-coinbase: [H-01]
+c4-2023-07-basin: [H-01]
+c4-2024-02-ai-arena: [H-01, H-02, H-03, H-04, H-05, H-06, H-07, H-08]
+c4-2023-12-particle: [H-01, H-02, H-03, H-04]
+c4-2023-10-wildcat: [H-01, H-02, H-03, H-06]                    # missed H-04, H-05

@@ -58,12 +58,41 @@ def main(argv: list[str] | None = None) -> int:
     rp = sub.add_parser("report", help="draft contest write-ups for confirmed findings")
     rp.add_argument("contest", type=Path)
 
+    mp = sub.add_parser("memprobe", help="contamination check: can the model recite the known Highs from memory?")
+    mp.add_argument("contest", type=Path)
+    mp.add_argument("--model", default=None, help="default: claude-opus-5-5 (use the model the review used)")
+    mp.add_argument("--export", type=Path, metavar="DIR",
+                    help="no-API mode: write probes to DIR (outside the repo) for a fresh agent with no web access")
+    mp.add_argument("--import", dest="import_dir", type=Path, metavar="DIR")
+
+    cb = sub.add_parser("cleanbench", help="benchmark recall with and without memorized Highs")
+    cb.add_argument("contests", type=Path, nargs="+")
+    cb.add_argument("--cutoff", metavar="YYYY-MM",
+                    help="model training cutoff: contests after it count as clean without a probe")
+
     sub.add_parser("doctor", help="check toolchain")
 
     a = p.parse_args(argv)
     if a.cmd == "doctor":
         for k, v in toolchain.check().items():
             print(f"{k:10} {v}")
+        return 0
+
+    if a.cmd == "cleanbench":
+        from bughunter import contamination
+        print(json.dumps(contamination.clean_bench(a.contests, a.workdir, a.cutoff), indent=2))
+        return 0
+
+    if a.cmd == "memprobe":
+        from bughunter import contamination
+        if a.export:
+            print(f"probe packet written to {contamination.export(a.contest, a.export)}")
+            return 0
+        out = (contamination.import_answers(a.contest, a.workdir, a.import_dir) if a.import_dir
+               else contamination.run(a.contest, a.workdir, model=a.model or "claude-opus-5-5"))
+        r = json.loads((out / "result.json").read_text())
+        print(f"{r['contest']}: {r['memorized']}/{r['highs']} Highs recalled from memory; "
+              f"canary certain findings: {r['canary_certain_findings']} -> {out / 'result.json'}")
         return 0
 
     contest = Contest.load(a.contest)

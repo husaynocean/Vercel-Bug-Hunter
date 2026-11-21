@@ -348,6 +348,79 @@ Notes:
 variable on the `vercel-bug-hunter` cloud environment (environment menu →
 Edit). New sessions pick it up.
 
+## Contamination check (did the model already know the answers?)
+
+Every benchmark contest is a 2023–24 Code4rena contest whose findings have been
+public on GitHub for years, so they are probably in the model's training data.
+"Blind" above means the answers were never in the prompt, not that the model
+had never seen them. Treat 28/35 as a ceiling until this check has run.
+
+`bughunter memprobe` asks the model, **with no source code**, to list each
+contest's High findings from memory, in three probes:
+
+| probe | what the model gets |
+|---|---|
+| `name` | contest name, platform, month, URL |
+| `files` | the same + the in-scope file list |
+| `canary` | an invented contest in the same format: any "certain" finding there means the model makes things up, so the contest's result is marked unreliable |
+
+A known High counts as **memorized** when a recalled finding names one of its
+root-cause functions and has a similar title, or has a very similar title on
+its own (`contamination.py`: `MEM_THRESHOLD`, `TITLE_ONLY_THRESHOLD`).
+`bughunter cleanbench` then re-scores recall without the memorized Highs.
+
+```bash
+bughunter memprobe contests/c4-2023-11-kelp.yaml            # API mode, same model as the review
+# no-API mode: the agent answering must have NO web access and no other files
+bughunter memprobe contests/c4-2023-11-kelp.yaml --export /tmp/memprobe
+bughunter memprobe contests/c4-2023-11-kelp.yaml --import /tmp/memprobe
+bughunter cleanbench contests/*.yaml --cutoff 2026-06       # recall_all vs recall_excluding_memorized
+```
+
+In an exported packet the tasks are named `probe-01`, `probe-02`, ... in
+shuffled order, so a file name never says which contest or probe it is. The map
+is in the hidden `.index.json`, which `--import` reads; don't show it to the
+answering agent. Export several contests into the same packet before anyone
+answers, so the tasks are shuffled across contests too.
+
+`--cutoff` is the review model's training cutoff: contests after it count as
+clean without a probe. The strongest benchmark is still contests whose reports
+were published after that date. Add some before quoting a recall number.
+
+### Result (Nov 2026, no-API mode, `--cutoff 2026-06`)
+
+Probes were answered by fresh Claude Code agents with no web, file or shell
+access, one agent per probe type (name, files, canary). The canary passed on
+all 10 contest parts (0 invented findings).
+
+| | Highs found / total |
+|---|---|
+| all benchmark Highs | **28/35 (80%)** |
+| Highs the model could recite from memory | **12/13 (92%)** |
+| Highs it could not recite (clean) | **16/22 (73%)** |
+
+The model recited 13 of the 35 Highs from the contest name or file list alone:
+all 3 Kelp Highs, 4 of 8 AI Arena, 3 of 10 DYAD, and the single Highs of
+PoolTogether and Basin, plus Wildcat H-06. Every match was checked by hand and
+names the same root cause. On the 22 Highs it could not recite, recall drops
+from 80% to 73%:
+
+| contest | clean Highs found |
+|---|---|
+| Particle | 4/4 |
+| AI Arena | 4/4 |
+| Canto asD, Coinbase | 1/1 each |
+| Wildcat | 3/5 |
+| DYAD | 3/7 |
+| Kelp, PoolTogether, Basin | none left after removing memorized Highs |
+
+So memory probably helped, and the honest headline is **73% of Highs on
+findings the model could not recite**, with a sample of only 22. "Found" uses
+`benchmarks/found_by_hand.yaml` (proven by a test and the same root cause,
+checked by hand). Without it `cleanbench` falls back to location matches,
+which counted 34/35 here and overstate recall. Contests published after the
+cutoff are still the real test.
+
 ## Adding a contest
 
 1. Copy `contests/c4-2024-03-pooltogether.yaml`. Set `repo`, the full 40-char
