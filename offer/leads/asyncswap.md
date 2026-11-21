@@ -70,3 +70,42 @@
 - Open the repo once more and check whether a new dated scope has appeared in
   `audit/`. If it has, drop the "code your auditor will see" line.
 - Have the offer-page link ready to send as the sample.
+
+## Update: X DMs are closed (21 Nov)
+
+@asyncswap has a closed inbox. Their repo publishes **support@asyncswap.org**
+(`docs/governance.md`, "Security"), so email that. Never mention the scope gap
+in public: no tweet replies or GitHub issues about it.
+
+**Subject:** Base deployment includes code outside your 5 Nov audit freeze
+
+> Hi AsyncSwap team,
+>
+> I went through asyncswap/contracts. That's a serious review trail already
+> (LSP, Pashov, AuditAgent, Formal Mind).
+>
+> One thing I noticed: MAINNET_READINESS.md freezes the audit scope at c9372ff
+> (5 Nov), and says to re-freeze if src/ changes. Since then src/ has gained
+> about 1,100 lines in 15 files (IncomingMatching, MultiAsset, DutchAuction,
+> RouterFlashFills, AsyncSwapFlashFiller), and deployments/8453/8453.json
+> (17 Nov) already lists IncomingMatching, MultiAsset and DutchAuction on Base.
+> There's no newer dated scope in audit/ yet, so the code on Base isn't fully
+> the code your auditor will see.
+>
+> I run pre-audit scans for Solidity protocols. Every finding comes with a
+> Foundry test that passes on your code today, proving the bug, and fails once
+> the fix is in. Anything I can't prove is left out.
+>
+> I can do a pass on exactly that delta since c9372ff for $1,000, delivered in
+> 4 days. I can also confirm or rule out the 29 open Pashov leads the same way,
+> since your scope says that's wanted.
+>
+> Sample finding and track record: [offer page link, shared publicly]
+>
+> Best,
+> [Your name]
+> x.com/xyz_husayn
+
+**Neutral public nudge** (optional, as a reply to a recent tweet; no details):
+> Hey team, your DMs are closed. Is there a good way to reach you about a
+> pre-audit question? Sent a note to support@ as well.
