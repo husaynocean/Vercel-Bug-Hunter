@@ -377,6 +377,12 @@ bughunter memprobe contests/c4-2023-11-kelp.yaml --import /tmp/memprobe
 bughunter cleanbench contests/*.yaml --cutoff 2026-06       # recall_all vs recall_excluding_memorized
 ```
 
+In an exported packet the tasks are named `probe-01`, `probe-02`, ... in
+shuffled order, so a file name never says which contest or probe it is. The map
+is in the hidden `.index.json`, which `--import` reads; don't show it to the
+answering agent. Export several contests into the same packet before anyone
+answers, so the tasks are shuffled across contests too.
+
 `--cutoff` is the review model's training cutoff: contests after it count as
 clean without a probe. The strongest benchmark is still contests whose reports
 were published after that date. Add some before quoting a recall number.

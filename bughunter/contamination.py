@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import random
 import re
 from pathlib import Path
 from typing import List, Literal
@@ -156,21 +157,73 @@ remember a contest, answer {"remembers_contest": false, "findings": []}.
 """
 
 
+INDEX = ".index.json"   # hidden map: task name -> {"contest", "probe"}; never shown to the answering agent
+
+
+def _task_name(n: int) -> str:
+    return f"probe-{n:02d}"
+
+
 def export(contest_file: Path, dest: Path) -> Path:
-    """No-API mode: write the probes for a fresh agent with no web access."""
+    """No-API mode: write the probes for a fresh agent with no web access.
+
+    Task files are named probe-01, probe-02, ... in shuffled order, so neither a
+    file name nor its position says which contest or probe it is (a canary named
+    after the real contest would give itself away). The map lives in the hidden
+    `.index.json`. Several contests can be exported into one packet: while no
+    answers exist yet, every export reshuffles all tasks in the packet."""
     contest = Contest.load(contest_file)
     dest = dest.resolve()
     repo_root = Path(__file__).resolve().parents[1]
     if dest == repo_root or repo_root in dest.parents:
         raise ValueError("export outside the repository (it holds the benchmark answers)")
-    (dest / "tasks").mkdir(parents=True, exist_ok=True)
+    tasks = dest / "tasks"
+    tasks.mkdir(parents=True, exist_ok=True)
     (dest / "answers").mkdir(exist_ok=True)
     (dest / "instructions.md").write_text(INSTRUCTIONS)
     (dest / "schema.json").write_text(json.dumps(ProbeAnswer.model_json_schema(), indent=1))
     (dest / "README.md").write_text(PACKET_README)
+
+    index_file = dest / INDEX
+    index = json.loads(index_file.read_text()) if index_file.exists() else {}
+    # (contest, probe) -> prompt for everything already in the packet, minus this contest
+    entries = {(v["contest"], v["probe"]): (tasks / f"{k}.md").read_text()
+               for k, v in index.items() if v["contest"] != contest.id}
     for probe, prompt in build_prompts(contest_file, contest).items():
-        (dest / "tasks" / f"{contest.id}--{probe}.md").write_text(prompt)
+        entries[(contest.id, probe)] = prompt
+    rng = random.SystemRandom()
+    if any((dest / "answers").glob("*.json")):
+        # answers already exist for the old names: keep them, append the new tasks shuffled
+        kept = {k: v for k, v in index.items() if v["contest"] != contest.id}
+        new = [e for e in entries if e[0] == contest.id]
+        rng.shuffle(new)
+        start = max((int(k.split("-")[1]) for k in index), default=0) + 1
+        for k, v in index.items():
+            if v["contest"] == contest.id:
+                (tasks / f"{k}.md").unlink(missing_ok=True)
+        index = dict(kept)
+        for i, (cid, probe) in enumerate(new, start):
+            index[_task_name(i)] = {"contest": cid, "probe": probe}
+    else:
+        order = list(entries)
+        rng.shuffle(order)
+        for old in tasks.glob("*.md"):
+            old.unlink()
+        index = {_task_name(i): {"contest": cid, "probe": probe} for i, (cid, probe) in enumerate(order, 1)}
+    for name, v in index.items():
+        (tasks / f"{name}.md").write_text(entries[(v["contest"], v["probe"])])
+    index_file.write_text(json.dumps(index, indent=1, sort_keys=True))
     return dest
+
+
+def _answer_path(src: Path, contest_id: str, probe: str) -> Path:
+    index_file = src / INDEX
+    if index_file.exists():
+        for name, v in json.loads(index_file.read_text()).items():
+            if v["contest"] == contest_id and v["probe"] == probe:
+                return src / "answers" / f"{name}.json"
+        return src / "answers" / f"__not-in-packet__{contest_id}--{probe}.json"
+    return src / "answers" / f"{contest_id}--{probe}.json"   # packets exported before the index existed
 
 
 def import_answers(contest_file: Path, workdir: Path, src: Path) -> Path:
@@ -178,7 +231,7 @@ def import_answers(contest_file: Path, workdir: Path, src: Path) -> Path:
     out = workdir / contest.id / "memprobe"
     out.mkdir(parents=True, exist_ok=True)
     for probe, prompt in build_prompts(contest_file, contest).items():
-        ans = src / "answers" / f"{contest.id}--{probe}.json"
+        ans = _answer_path(src, contest.id, probe)
         rec = {"probe": probe, "model": "claude-code-manual", "key": _key("manual", prompt)}
         if not ans.exists():
             rec.update(status="missing")

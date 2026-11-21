@@ -84,3 +84,75 @@ def test_found_by_hand_matches_readme_total():
         truth = yaml.safe_load((ROOT / "benchmarks" / "truth" / f"{cid}.yaml").read_text())
         highs = {t["id"] for t in truth["findings"] if t["severity"] == "high"}
         assert set(ids or []) <= highs, cid
+
+
+def _all_contest_ids():
+    return [Contest.load(f).id for f in sorted((ROOT / "contests").glob("*.yaml"))]
+
+
+def test_export_task_names_and_canary_do_not_leak_contest(tmp_path):
+    files = [KELP, ROOT / "contests" / "c4-2023-07-basin.yaml", ROOT / "contests" / "c4-2024-04-dyad.yaml"]
+    d = tmp_path / "packet"
+    for f in files:
+        cm.export(f, d)
+    index = json.loads((d / ".index.json").read_text())
+    names = sorted(p.stem for p in (d / "tasks").glob("*.md"))
+    assert names == sorted(index) == [f"probe-{i:02d}" for i in range(1, 10)]
+    ids = _all_contest_ids()
+    for name in names:
+        # no task file name reveals a contest or a probe type
+        assert not any(cid in name for cid in ids)
+        assert not any(p in name for p in cm.PROBES)
+    for name, v in index.items():
+        if v["probe"] != "canary":
+            continue
+        text = (d / "tasks" / f"{name}.md").read_text().lower()
+        c = Contest.load(ROOT / "contests" / f"{v['contest']}.yaml")
+        # the canary must not name or point at the real contest
+        assert c.id not in text and c.id.split("-", 3)[-1] not in text
+        assert c.repo.lower().removesuffix(".git") not in text
+        assert (c.url or "").lower() not in text or not c.url
+        assert v["contest"].split("-")[3] not in text          # project word, e.g. "kelp", "basin", "dyad"
+
+
+def test_export_shuffles_and_import_uses_index(tmp_path):
+    d = tmp_path / "packet"
+    cm.export(KELP, d)
+    index = json.loads((d / ".index.json").read_text())
+    assert sorted(v["probe"] for v in index.values()) == sorted(cm.PROBES)
+    for name, v in index.items():
+        assert v["contest"] == "c4-2023-11-kelp"
+        ans = {"remembers_contest": v["probe"] == "files", "findings": [] if v["probe"] != "files" else
+               [{"title": "First depositor can manipulate rsETH price", "functions": ["getRSETHPrice"], "confidence": "certain"}]}
+        (d / "answers" / f"{name}.json").write_text(json.dumps(ans))
+    out = cm.import_answers(KELP, tmp_path / "work", d)
+    r = json.loads((out / "result.json").read_text())
+    assert r["memorized"] == 1 and r["reliable"] is True
+    # the order is random: 8 exports of 3 probes (6 orders) all identical would be a 1-in-279,936 fluke
+    orders = set()
+    for i in range(8):
+        e = tmp_path / f"p{i}"
+        cm.export(KELP, e)
+        idx = json.loads((e / ".index.json").read_text())
+        orders.add(tuple(idx[k]["probe"] for k in sorted(idx)))
+    assert len(orders) > 1
+
+
+def test_export_appends_without_renaming_answered_tasks(tmp_path):
+    d = tmp_path / "packet"
+    cm.export(KELP, d)
+    first = json.loads((d / ".index.json").read_text())
+    (d / "answers" / "probe-01.json").write_text('{"remembers_contest": false, "findings": []}')
+    cm.export(ROOT / "contests" / "c4-2023-07-basin.yaml", d)
+    second = json.loads((d / ".index.json").read_text())
+    assert {k: v for k, v in second.items() if k in first} == first
+    assert sorted(second) == [f"probe-{i:02d}" for i in range(1, 7)]
+
+
+def test_import_reads_old_packets_without_index(tmp_path):
+    d = tmp_path / "old"
+    (d / "answers").mkdir(parents=True)
+    for p in cm.PROBES:
+        (d / "answers" / f"c4-2023-11-kelp--{p}.json").write_text('{"remembers_contest": false, "findings": []}')
+    out = cm.import_answers(KELP, tmp_path / "work", d)
+    assert all(json.loads((out / f"{p}.json").read_text())["status"] == "ok" for p in cm.PROBES)
