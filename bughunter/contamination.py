@@ -262,6 +262,8 @@ def clean_bench(contest_files: list[Path], workdir: Path, cutoff: str | None = N
 
     A contest from after `cutoff` (YYYY-MM, the model's training cutoff) is
     clean by date and needs no probe."""
+    hand_file = Path(__file__).resolve().parents[1] / "benchmarks" / "found_by_hand.yaml"
+    by_hand = (yaml.safe_load(hand_file.read_text()) or {}) if hand_file.exists() else {}
     rows, tot = [], {"highs": 0, "found": 0, "clean_highs": 0, "clean_found": 0}
     for cf in contest_files:
         contest = Contest.load(cf)
@@ -272,7 +274,11 @@ def clean_bench(contest_files: list[Path], workdir: Path, cutoff: str | None = N
             continue
         b = benchmark.score(scan, truth_file)
         conf = b.get("confirmed_judged") or b.get("confirmed")
-        found = {r["id"] for r in (conf or {}).get("findings", []) if r["candidate_hit"]}
+        if contest.id in by_hand:   # proven + same root cause, checked by hand
+            found, found_source = set(by_hand[contest.id] or []), "hand-checked root cause"
+        else:                         # location match only: an upper bound
+            found = {r["id"] for r in (conf or {}).get("findings", []) if r["candidate_hit"]}
+            found_source = "location match (upper bound)"
         month = _month(contest.id)
         post = bool(cutoff and month and month > cutoff)
         mp = workdir / contest.id / "memprobe" / "result.json"
@@ -287,12 +293,14 @@ def clean_bench(contest_files: list[Path], workdir: Path, cutoff: str | None = N
             continue
         highs = {x["id"] for x in b["findings"]}
         clean = highs - mem
-        row = {"contest": contest.id, "status": status, "highs": len(highs), "found": len(found & highs),
+        row = {"contest": contest.id, "status": status, "found_source": found_source, "highs": len(highs), "found": len(found & highs),
                "memorized": sorted(mem), "clean_highs": len(clean), "clean_found": len(found & clean)}
         rows.append(row)
         for k in tot:
             tot[k] += row[k]
     pct = lambda a, b: f"{a}/{b} ({round(100 * a / b)}%)" if b else "n/a"
+    mem_found, mem_highs = tot["found"] - tot["clean_found"], tot["highs"] - tot["clean_highs"]
     return {"contests": rows,
             "recall_all": pct(tot["found"], tot["highs"]),
-            "recall_excluding_memorized": pct(tot["clean_found"], tot["clean_highs"])}
+            "recall_excluding_memorized": pct(tot["clean_found"], tot["clean_highs"]),
+            "recall_on_memorized": pct(mem_found, mem_highs)}

@@ -75,3 +75,12 @@ def test_export_refuses_inside_repo(tmp_path):
         cm.export(KELP, ROOT / "packet")
     d = cm.export(KELP, tmp_path / "packet")
     assert len(list((d / "tasks").glob("*.md"))) == 3
+
+
+def test_found_by_hand_matches_readme_total():
+    hand = yaml.safe_load((ROOT / "benchmarks" / "found_by_hand.yaml").read_text())
+    assert sum(len(v or []) for v in hand.values()) == 28
+    for cid, ids in hand.items():
+        truth = yaml.safe_load((ROOT / "benchmarks" / "truth" / f"{cid}.yaml").read_text())
+        highs = {t["id"] for t in truth["findings"] if t["severity"] == "high"}
+        assert set(ids or []) <= highs, cid

@@ -381,6 +381,40 @@ bughunter cleanbench contests/*.yaml --cutoff 2026-06       # recall_all vs reca
 clean without a probe. The strongest benchmark is still contests whose reports
 were published after that date. Add some before quoting a recall number.
 
+### Result (Nov 2026, no-API mode, `--cutoff 2026-06`)
+
+Probes were answered by fresh Claude Code agents with no web, file or shell
+access, one agent per probe type (name, files, canary). The canary passed on
+all 10 contest parts (0 invented findings).
+
+| | Highs found / total |
+|---|---|
+| all benchmark Highs | **28/35 (80%)** |
+| Highs the model could recite from memory | **12/13 (92%)** |
+| Highs it could not recite (clean) | **16/22 (73%)** |
+
+The model recited 13 of the 35 Highs from the contest name or file list alone:
+all 3 Kelp Highs, 4 of 8 AI Arena, 3 of 10 DYAD, and the single Highs of
+PoolTogether and Basin, plus Wildcat H-06. Every match was checked by hand and
+names the same root cause. On the 22 Highs it could not recite, recall drops
+from 80% to 73%:
+
+| contest | clean Highs found |
+|---|---|
+| Particle | 4/4 |
+| AI Arena | 4/4 |
+| Canto asD, Coinbase | 1/1 each |
+| Wildcat | 3/5 |
+| DYAD | 3/7 |
+| Kelp, PoolTogether, Basin | none left after removing memorized Highs |
+
+So memory probably helped, and the honest headline is **73% of Highs on
+findings the model could not recite**, with a sample of only 22. "Found" uses
+`benchmarks/found_by_hand.yaml` (proven by a test and the same root cause,
+checked by hand). Without it `cleanbench` falls back to location matches,
+which counted 34/35 here and overstate recall. Contests published after the
+cutoff are still the real test.
+
 ## Adding a contest
 
 1. Copy `contests/c4-2024-03-pooltogether.yaml`. Set `repo`, the full 40-char
