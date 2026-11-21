@@ -64,21 +64,21 @@ a { color: var(--accent) }
   <h1>Find the bugs before your auditors do, and get a failing test for each one.</h1>
   <p class="lede">An AI-assisted review of your contracts, finished by hand. Every bug I report comes with a Foundry test that breaks your code today and passes once the fix is in. No proof, no report.</p>
   <div class="run" role="img" aria-label="Example test output: the proof test passes on the vulnerable code and fails after the fix">$ forge test --match-path test/bughunter/c00.t.sol
-<span class="p">[PASS]</span> test_poc_partialClaimWipesRemainingYieldFees()   <span class="d">// bug reproduced</span>
+<span class="p">[PASS]</span> test_poc_withdrawCarryAlwaysUnderflows()   <span class="d">// bug reproduced</span>
 
 $ git apply fix.patch &amp;&amp; forge test --match-path test/bughunter/c00.t.sol
-<span class="f">[FAIL]</span> test_poc_partialClaimWipesRemainingYieldFees()   <span class="d">// fix verified</span></div>
+<span class="f">[FAIL]</span> test_poc_withdrawCarryAlwaysUnderflows()   <span class="d">// fix verified</span></div>
 </header>
 
 <section aria-labelledby="track">
   <div class="eyebrow">Track record</div>
-  <h2 id="track">Tested on 9 past public audit contests, without seeing the answers</h2>
+  <h2 id="track">Tested on 9 past public audit contests, and checked for memorised answers</h2>
   <div class="stats">
-    <div class="stat"><b>28 / 35</b><span>published High-severity bugs found and proven with a test</span></div>
-    <div class="stat"><b>80%</b><span>High recall across the 9 contests</span></div>
+    <div class="stat"><b>16 / 22</b><span>High-severity bugs found and proven that the AI could not recite from memory</span></div>
+    <div class="stat"><b>73%</b><span>High recall once memorised bugs are removed</span></div>
     <div class="stat"><b>7</b><span>suspected bugs thrown out because the test could not prove them</span></div>
   </div>
-  <p class="note">The contests are past Code4rena competitions with public results: PoolTogether, Canto, Kelp, DYAD, Coinbase, Basin, AI Arena, Particle and Wildcat. It missed 7 Highs, mostly liquidation economics that span many functions, which is why a person reviews every result and why this does not replace a full audit.</p>
+  <p class="note">The contests are past Code4rena competitions with public results: PoolTogether, Canto, Kelp, DYAD, Coinbase, Basin, AI Arena, Particle and Wildcat. Old contest reports can end up in an AI's training data, so I tested that too: given only each contest's name and file list, with no code, the model could recite 13 of the 35 High bugs. Counting everything, it found 28 of 35 (80%); the 73% above counts only the 22 it could not recite. It missed 6 of those, mostly liquidation economics that span many functions, which is why a person reviews every result and why this does not replace a full audit.</p>
 </section>
 
 <section aria-labelledby="how">
@@ -111,25 +111,20 @@ $ git apply fix.patch &amp;&amp; forge test --match-path test/bughunter/c00.t.so
 <section aria-labelledby="sample">
   <div class="eyebrow">Sample finding</div>
   <h2 id="sample">What a finding looks like</h2>
-  <p class="note">Reproduced on the public PoolTogether contest (Code4rena, March 2024), where this bug was a confirmed High. Shortened from the full report.</p>
+  <p class="note">Reproduced on the public Canto asD contest (Code4rena, November 2023), where this bug was a confirmed High. It is one of the bugs the AI could not recite from memory. Shortened from the full report.</p>
   <article class="finding">
-    <span class="sev">High · Accounting</span>
-    <h3>A partial fee claim wipes the whole fee balance, so the unclaimed fees are lost</h3>
-    <div class="src">PrizeVault.sol · claimYieldFeeShares() · L611–L622</div>
-    <p><strong>Root cause.</strong> The function subtracts the full cached balance instead of the amount claimed. Whenever the fee recipient claims less than everything, the balance drops to zero but only the claimed shares are minted. The rest is no longer owed to anyone.</p>
-    <p><strong>Impact.</strong> The fee recipient permanently loses the unclaimed part of its fees on every partial claim, and those assets get swept into the prize pool as yield. It happens in normal use, with no attacker.</p>
-    <pre class="code"><span class="c">// test: claim half the fees, then try to claim the rest</span>
-vm.prank(bob);
-vault.claimYieldFeeShares(half);
-assertEq(vault.balanceOf(bob), half);
-assertEq(vault.yieldFeeBalance(), 0);   <span class="c">// whole balance wiped</span>
-
-vm.prank(bob);
-vm.expectRevert(/* SharesExceedsYieldFeeBalance(rest, 0) */);
-vault.claimYieldFeeShares(rest);        <span class="c">// the rest is gone</span></pre>
+    <span class="sev">High · Integration</span>
+    <h3>The exchange rate is scaled for the wrong decimals, so the owner's interest is locked forever</h3>
+    <div class="src">asD.sol · withdrawCarry() · L72–L90</div>
+    <p><strong>Root cause.</strong> The contract divides the cNOTE exchange rate by 1e28, the scale for a Compound cToken with 8 decimals. On Canto, cNOTE has 18 decimals, so the rate is scaled by 1e18. The NOTE backing is understated by a factor of 10 billion and the subtraction of the asD supply underflows.</p>
+    <p><strong>Impact.</strong> withdrawCarry reverts whenever any asD exists, so the creator can never withdraw the interest the protocol is built to pay them. It happens in normal use, with no attacker, and the contract has no other way out.</p>
+    <pre class="code"><span class="c">// asD.sol, withdrawCarry()</span>
+uint256 maximumWithdrawable =
+    (cNote.balanceOf(address(this)) * exchangeRate)
+    / 1e28 - totalSupply();   <span class="c">// underflows: rate is 1e18-scaled</span></pre>
     <pre class="code"><span class="c">// fix</span>
-<span class="del">-        yieldFeeBalance -= _yieldFeeBalance;</span>
-<span class="add">+        yieldFeeBalance -= _shares;</span></pre>
+<span class="del">-            1e28 -</span>
+<span class="add">+            1e18 -</span></pre>
     <p class="note">The test passes on the audited commit and fails once the fix is applied.</p>
   </article>
 </section>
