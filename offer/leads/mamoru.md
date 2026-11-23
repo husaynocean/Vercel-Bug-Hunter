@@ -69,3 +69,38 @@ suits a team that already pins every invariant to a named test.
 - Look on mamoru.lol and app.mamoru.lol for a contact or Discord link.
 - Or reply to one of their posts with a neutral nudge: "Is there a good way to
   reach the team about a V4 security question?" Keep the details private.
+
+## Update: X inbox closed (23 Nov)
+
+The bio says "DMs open", but X shows a closed inbox: probably only accounts
+they follow, or verified accounts, can message them. mamoru.lol shows
+**hi@mamoru.lol**, so email that instead.
+
+**Subject:** V4 policy: a proof-based review before T7
+
+> Hi Mamoru team,
+>
+> I read through SECURITY.md for the V4 policy. That's one of the most careful
+> threat models I've seen on a small team.
+>
+> One thing stood out: V4 is "not deployed and not audited", and by design it
+> has no owner, pause or upgrade, so as you put it, "a mistake stays until a
+> new version". With accounts already live on Base at up to 10,000 USDC, the
+> review before T7 is the only gate.
+>
+> I do pre-audit reviews where every finding comes with a Foundry test that
+> passes on your code today, proving the bug, and fails once the fix is in.
+> Anything I can't prove is left out. For the V4 scope in SECURITY.md (~1,700
+> lines: MamoruActionPolicyV4, GasPolicyV2, RemoteSafe, MigrationCheck and the
+> tables), it's $2,000, delivered in 5 days, before you deploy.
+>
+> Sample finding and track record: [offer page link]
+>
+> Congrats on the Curator pick, by the way.
+>
+> [Your name]
+> x.com/xyz_husayn
+
+**Optional public nudge** (reply to their 10 Nov "AMA" post; no details):
+> Congrats! Sent a note to hi@mamoru.lol about V4. Is that the best way to
+> reach the team?
