@@ -109,3 +109,26 @@ in public: no tweet replies or GitHub issues about it.
 **Neutral public nudge** (optional, as a reply to a recent tweet; no details):
 > Hey team, your DMs are closed. Is there a good way to reach you about a
 > pre-audit question? Sent a note to support@ as well.
+
+## Follow-up email (23 Nov; send once, then move on)
+
+Checked first: there's still no new scope in `audit/`. Another source change
+(#113, flash fills, 21 Nov) has landed since the first email, so the delta
+since `c9372ff` is now +1,260 / −143 lines in 15 files.
+
+**Subject:** Re: Base deployment includes code outside your 5 Nov audit freeze
+
+> Hi AsyncSwap team,
+>
+> Quick follow-up in case my last note got buried. Since then #113 (flash
+> fills, 21 Nov) has landed too, so src/ is now about 1,260 lines past the
+> c9372ff freeze, and there's still no newer dated scope in audit/.
+>
+> If it's useful, I can do the pre-audit pass on that delta before your
+> auditor starts, with a Foundry test for every finding. Sample of the format:
+> [offer page link]
+>
+> If the timing's wrong, no worries, and good luck with the Base launch.
+>
+> [Your name]
+> x.com/xyz_husayn
