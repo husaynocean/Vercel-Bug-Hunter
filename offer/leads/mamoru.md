@@ -104,3 +104,23 @@ they follow, or verified accounts, can message them. mamoru.lol shows
 **Optional public nudge** (reply to their 10 Nov "AMA" post; no details):
 > Congrats! Sent a note to hi@mamoru.lol about V4. Is that the best way to
 > reach the team?
+
+## Follow-up email (26 Nov; send once, then move on)
+
+Checked first: no contract changes since 23 Nov. `SECURITY.md` still says V4
+is "Not deployed and not audited".
+
+**Subject:** Re: V4 policy: a proof-based review before T7
+
+> Hi Mamoru team,
+>
+> Quick follow-up in case my note got buried. V4 is still marked "not deployed
+> and not audited" in SECURITY.md, so the offer stands: a review of the V4
+> scope before T7, with a Foundry test for every finding, $2,000 in 5 days.
+>
+> Sample of the format: [offer page link]
+>
+> If the timing's wrong, no worries, and good luck with the rollout.
+>
+> [Your name]
+> x.com/xyz_husayn
